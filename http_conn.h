@@ -23,7 +23,8 @@
  * 封装的请求类，作为线程池的模板参数类使用
  */
 class HttpConn {
-    /* ----------------------------------------------------定义一些http参数-------------------------------------------- */
+    /* ----------------------------------------------------定义一些http参数--------------------------------------------
+     */
 public:
     static const int FILENAME_LEN = 200; // 文件名字符数
     static const int READ_BUFFER_SIZE = 2048; // 读缓冲区大小
@@ -67,10 +68,11 @@ public:
         LINE_OPEN
     };
 
-    /* -------------------------------------------------处理http请求的函数------------------------------------------- */
+    /* -------------------------------------------------处理http请求的函数-------------------------------------------
+     */
 public:
     /**
-     * 初始化请求
+     * 初始化请求，设置参数
      * @param sockfd 从哪个fd收到该请求
      * @param addr 发方地址
      */
@@ -85,11 +87,15 @@ public:
     bool Write(); // 写入应答报文(非阻塞)
 
 private:
+    /**
+     * 初始化一些变量(全0初始化)，并调用构造函数，构造请求对象
+     */
     void Init();
+
     HttpCode ProcessRead(); // 解析http请求
     bool ProcessWrite(HttpCode ret); // 填充http应答
 
-    /* 下面这一组函数被process_read调用以分析HTTP请求 */
+    /* 下面这一组函数被ProcessRead调用以分析HTTP请求 */
     HttpCode ParseRequestLine(char* text);
     HttpCode ParseHeaders(char* text);
     HttpCode ParseContent(char* text);
@@ -97,7 +103,7 @@ private:
     char* GetLine() { return read_buf_ + start_line_; }
     HttpLineStatus ParseLine();
 
-    /* 下面这一组函数被process_write调用以填充HTTP应答 */
+    /* 下面这一组函数被ProcessWrite调用以填充HTTP应答 */
     void Unmap();
     bool AddResponse(const char* format, ...);
     bool AddContent(const char* content);
