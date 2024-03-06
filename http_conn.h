@@ -19,6 +19,30 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+/* 注：HTTP报文的格式参考
+----------------------------------1.发送--------------------------------------------
+            | POST http://www.baidu.com HTTP/1.1                         \r\n       (请求行)
+            | Host: api.efxnow.com                                       \r\n       (一条请求头)
+            | Content-Type: application/x-www-form-urlencoded            \r\n       (一条请求头)
+            | Content-Length: length                                     \r\n       (一条请求头)
+            |                                                            \r\n       (空行)
+            | UserID=string&PWD=string&OrderConfirmation=string          \r\n       (请求体)
+----------------------------------2.应答--------------------------------------------
+            | HTTP/1.1 200 OK
+            | Content-Type: text/xml; charset=utf-8
+            | Content-Length: length
+            |
+            | <? xml version = "1.0" encoding = "utf-8" ?>
+            | < objPlaceOrderResponse xmlns = "https://api.efxnow.com/webservices2.3" >
+            | < Success >boolean</ Success >
+            | < ErrorDescription >string</ ErrorDescription >
+            | < ErrorNumber >int</ ErrorNumber >
+            | < CustomerOrderReference >long</ CustomerOrderReference >
+            | < OrderConfirmation >string</ OrderConfirmation >
+            | < CustomerDealRef >string</ CustomerDealRef >
+            | </ objPlaceOrderResponse >
+ */
+
 /**
  * 封装的请求类，作为线程池的模板参数类使用
  */
@@ -45,16 +69,18 @@ public:
     };
 
     enum HttpCheckState {
-        CHECK_STATE_REQUESTLINE,
-        CHECK_STATE_HEADER,
-        CHECK_STATE_CONTENT
+        CHECK_STATE_REQUESTLINE, // 正在分析请求行
+        CHECK_STATE_HEADER, // 正在分析头部字段
+        CHECK_STATE_CONTENT // 正在分析请求体
     };
 
     enum HttpCode {
-        OK = 200,
-        BAD_REQUEST = 400,
-        NOT_FOUND = 404,
-        INTERNAL_SERVER_ERROR = 500
+        NO_REQUEST = 100, // 请求不完整，需要继续读取客户数据
+        GET_REQUEST, // 获得了一个完整的客户请求
+        OK = 200, // 访问成功
+        BAD_REQUEST = 400, // 客户请求有语法错误
+        NOT_FOUND = 404, // 客户访问的资源没有找到
+        INTERNAL_SERVER_ERROR = 500 // 服务器内部错误
     };
 
     enum HttpVersion {
@@ -63,9 +89,9 @@ public:
     };
 
     enum HttpLineStatus {
-        LINE_OK = 0,
-        LINE_BAD,
-        LINE_OPEN
+        LINE_OK = 0, // 读取到一个完整的行
+        LINE_BAD, // 行出错
+        LINE_OPEN // 行数据尚且不完整
     };
 
     /* -------------------------------------------------处理http请求的函数-------------------------------------------
@@ -100,7 +126,11 @@ private:
      */
     void Init();
 
-    HttpCode ProcessRead(); // 解析http请求
+    /**
+     * 从read_buf中循环取出每一行http语句，并解析http请求
+     */
+    HttpCode ProcessRead();
+
     bool ProcessWrite(HttpCode ret); // 填充http应答
 
     /* 下面这一组函数被ProcessRead调用以分析HTTP请求 */
@@ -110,10 +140,26 @@ private:
      */
     HttpCode ParseRequestLine(char* text);
 
+    /**
+     * 解析HTTP请求的一个头部信息
+     */
     HttpCode ParseHeaders(char* text);
+
+    /**
+     * 解析请求体：我们没有真正解析HTTP请求的消息体，只是判断它是否被完整地读入了
+     */
     HttpCode ParseContent(char* text);
+
     HttpCode DoRequest();
+
+    /**
+     * 获取本行在buffer中的起始位置
+     */
     char* GetLine() { return m_read_buf + m_start_line; }
+
+    /**
+     * 在read_buf标识出一个完整的行：分析新读入的数据中是否有\r\n，返回LINE_OK表示遇到\r\n，m_checked_idx在本行结尾；LINE_OPEN表示没读取到\r\n，m_checked_idx在缓存区末尾，需要继续读取，LINE_BAD表示出错
+     */
     HttpLineStatus ParseLine();
 
     /* 下面这一组函数被ProcessWrite调用以填充HTTP应答 */
