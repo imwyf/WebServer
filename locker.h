@@ -10,7 +10,7 @@
  */
 class Semaphore {
 private:
-    sem_t sem_; // 信号量结构
+    sem_t m_sem; // 信号量结构
 
 public:
     /**
@@ -21,21 +21,21 @@ public:
     Semaphore(int pshared = 0, int value = 0)
     {
         // RAII-在构造函数中初始化
-        if (sem_init(&sem_, pshared, value) != 0) {
+        if (sem_init(&m_sem, pshared, value) != 0) {
             throw std::exception();
         }
     }
-    ~Semaphore() { sem_destroy(&sem_); }
+    ~Semaphore() { sem_destroy(&m_sem); }
     /**
      * 阻塞当前线程直到信号量sem的值大于0,解除阻塞后将sem的值减一，表明获取到公共资源
      * @return True/Fasle 代表是否成功获取资源
      */
-    bool Wait() { return sem_wait(&sem_) == 0; }
+    bool Wait() { return sem_wait(&m_sem) == 0; }
     /**
      * 增加信号量,释放公共资源
      * @return True/Fasle 代表是否成功释放
      */
-    bool Post() { return sem_post(&sem_) == 0; }
+    bool Post() { return sem_post(&m_sem) == 0; }
 };
 
 /**
@@ -43,18 +43,18 @@ public:
  */
 class Locker {
 private:
-    pthread_mutex_t mutex_;
+    pthread_mutex_t m_mutex;
 
 public:
     Locker()
     {
-        if (pthread_mutex_init(&mutex_, NULL) != 0) {
+        if (pthread_mutex_init(&m_mutex, NULL) != 0) {
             throw std::exception();
         }
     }
-    ~Locker() { pthread_mutex_destroy(&mutex_); }
-    bool Lock() { return pthread_mutex_lock(&mutex_) == 0; }
-    bool Unlock() { return pthread_mutex_unlock(&mutex_) == 0; }
+    ~Locker() { pthread_mutex_destroy(&m_mutex); }
+    bool Lock() { return pthread_mutex_lock(&m_mutex) == 0; }
+    bool Unlock() { return pthread_mutex_unlock(&m_mutex) == 0; }
 };
 
 /**
@@ -62,25 +62,25 @@ public:
  */
 class Condition {
 private:
-    pthread_mutex_t mutex_;
-    pthread_cond_t cond_;
+    pthread_mutex_t m_mutex;
+    pthread_cond_t m_cond;
 
 public:
     Condition()
     {
-        if (pthread_mutex_init(&mutex_, NULL) != 0) {
+        if (pthread_mutex_init(&m_mutex, NULL) != 0) {
             throw std::exception();
         }
-        if (pthread_cond_init(&cond_, NULL) != 0) {
+        if (pthread_cond_init(&m_cond, NULL) != 0) {
             // 构造函数中一旦出现问题，就应该立即释放已经成功分配了的资源
-            pthread_mutex_destroy(&mutex_);
+            pthread_mutex_destroy(&m_mutex);
             throw std::exception();
         }
     }
     ~Condition()
     {
-        pthread_mutex_destroy(&mutex_);
-        pthread_cond_destroy(&cond_);
+        pthread_mutex_destroy(&m_mutex);
+        pthread_cond_destroy(&m_cond);
     }
     /**
      * 等待条件变量变为真
@@ -88,15 +88,15 @@ public:
     bool Wait()
     {
         int ret = 0;
-        pthread_mutex_lock(&mutex_);
-        ret = pthread_cond_wait(&cond_, &mutex_);
-        pthread_mutex_unlock(&mutex_);
+        pthread_mutex_lock(&m_mutex);
+        ret = pthread_cond_wait(&m_cond, &m_mutex);
+        pthread_mutex_unlock(&m_mutex);
         return ret == 0;
     }
     /**
      *  唤醒等待条件变量的线程
      */
-    bool Signal() { return pthread_cond_signal(&cond_) == 0; }
+    bool Signal() { return pthread_cond_signal(&m_cond) == 0; }
 };
 
 #endif

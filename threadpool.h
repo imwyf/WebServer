@@ -20,31 +20,31 @@ public:
      * @param max_request 请求队列容量
      */
     ThreadPool(size_t threads_num = 8, size_t max_request = 1000)
-        : thread_num_(threads_num)
-        , max_request_(max_request)
+        : m_thread_num(threads_num)
+        , m_max_request(max_request)
     {
         if (threads_num <= 0 || max_request <= 0) {
             throw std::exception();
         }
-        request_queue_ = new std::list<T*>(max_request_);
-        threadpool_ = new pthread_t[thread_num_];
+        m_request_queue = new std::list<T*>(m_max_request);
+        m_threadpool = new pthread_t[m_thread_num];
         /* 创建thread_number个线程，并将它们都设置为脱离线程 */
-        for (int i = 0; i < thread_num_; ++i) {
+        for (int i = 0; i < m_thread_num; ++i) {
             printf("create the %d-th thread\n", i);
-            if (pthread_create(threadpool_ + i, NULL, Worker, this) != 0) { // this就是主线程（线程池的创建者）
-                delete threadpool_;
+            if (pthread_create(m_threadpool + i, NULL, Worker, this) != 0) { // this就是主线程（线程池的创建者）
+                delete m_threadpool;
                 throw std::exception();
             }
-            if (pthread_detach(*(threadpool_ + i))) {
-                delete threadpool_;
+            if (pthread_detach(*(m_threadpool + i))) {
+                delete m_threadpool;
                 throw std::exception();
             }
         }
     };
     ~ThreadPool()
     {
-        delete threadpool_;
-        is_stop_ = true;
+        delete m_threadpool;
+        m_is_stop = true;
     };
 
     /**
@@ -52,14 +52,14 @@ public:
      */
     bool Append(T* request)
     {
-        locker_.Lock();
-        if (request_queue_.size() > max_request_) {
-            locker_.Unlock();
+        m_locker.Lock();
+        if (m_request_queue.size() > m_max_request) {
+            m_locker.Unlock();
             return false;
         } else {
-            request_queue_.push_back(request);
-            locker_.Unlock();
-            sem_.Post();
+            m_request_queue.push_back(request);
+            m_locker.Unlock();
+            m_sem.Post();
             return true;
         }
     }
@@ -84,17 +84,17 @@ private:
      */
     void run()
     {
-        while (!is_stop_) {
-            sem_.Wait();
-            locker_.Lock();
-            if (request_queue_.empty()) {
-                locker_.Unlock();
+        while (!m_is_stop) {
+            m_sem.Wait();
+            m_locker.Lock();
+            if (m_request_queue.empty()) {
+                m_locker.Unlock();
                 continue;
             } else {
                 // 工作队列不为空，则取出一个执行
-                T* request = request_queue_.front();
-                request_queue_.pop_front();
-                locker_.Unlock();
+                T* request = m_request_queue.front();
+                m_request_queue.pop_front();
+                m_locker.Unlock();
                 // 执行任务
                 if (request) {
                     request->Process();
@@ -104,13 +104,13 @@ private:
     }
 
 private:
-    int thread_num_; // 线程池中的线程数
-    int max_request_; // 请求队列容量
-    pthread_t* threadpool_; // 描述线程池的数组
-    std::list<T*> request_queue_; // 请求队列 // TODO:请求为什么不直接放在list，而是存指针
-    Locker locker_; // 保护请求队列的互斥锁
-    Semaphore sem_; // 待处理任务数作为信号量
-    bool is_stop_; // 是否结束线程
+    int m_thread_num; // 线程池中的线程数
+    int m_max_request; // 请求队列容量
+    pthread_t* m_threadpool; // 描述线程池的数组
+    std::list<T*> m_request_queue; // 请求队列 // TODO:请求为什么不直接放在list，而是存指针
+    Locker m_locker; // 保护请求队列的互斥锁
+    Semaphore m_sem; // 待处理任务数作为信号量
+    bool m_is_stop; // 是否结束线程
 };
 
 #endif

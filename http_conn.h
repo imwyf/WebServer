@@ -83,8 +83,16 @@ public:
      */
     void CloseConn(bool real_close);
     void Process(); // 处理请求
-    bool Read(); // 读取请求报文(非阻塞)
-    bool Write(); // 写入应答报文(非阻塞)
+
+    /**
+     * (非阻塞)循环读取客户数据，直到无数据可读或者对方关闭连接
+     */
+    bool Read();
+
+    /**
+     * 写入应答报文(非阻塞)
+     */
+    bool Write();
 
 private:
     /**
@@ -96,11 +104,16 @@ private:
     bool ProcessWrite(HttpCode ret); // 填充http应答
 
     /* 下面这一组函数被ProcessRead调用以分析HTTP请求 */
+
+    /**
+     * 解析HTTP请求行，获得请求方法、目标URL，以及HTTP版本号
+     */
     HttpCode ParseRequestLine(char* text);
+
     HttpCode ParseHeaders(char* text);
     HttpCode ParseContent(char* text);
     HttpCode DoRequest();
-    char* GetLine() { return read_buf_ + start_line_; }
+    char* GetLine() { return m_read_buf + m_start_line; }
     HttpLineStatus ParseLine();
 
     /* 下面这一组函数被ProcessWrite调用以填充HTTP应答 */
@@ -114,30 +127,30 @@ private:
     bool AddBlankLine();
 
 public:
-    static int epollfd_; // 所有socket上的事件都被注册到同一个epoll内核事件表中，所以将epoll文件描述符设置为静态的
-    static int user_count_; // 统计用户数量
+    static int m_epollfd; // 所有socket上的事件都被注册到同一个epoll内核事件表中，所以将epoll文件描述符设置为静态的
+    static int m_user_count; // 统计用户数量
 
 private:
-    int sockfd_; // 该HTTP连接的socket
-    sockaddr_in address_; // 对方的socket地址
-    char read_buf_[READ_BUFFER_SIZE]; // 读缓冲区
-    int read_idx_; // 标识读缓冲中下一个未读位置
-    int checked_idx_; // 标识读缓冲中正在分析的字符的位置
-    int start_line_; // 当前正在解析的行的起始位置
-    char write_buf_[WRITE_BUFFER_SIZE]; // 写缓冲区
-    int write_idx_; // 写缓冲区中待发送的字节数
-    HttpCheckState check_state_; // 主状态机当前所处的状态
-    HttpMethod method_; // 请求方法
-    char real_file_[FILENAME_LEN]; // 客户请求的目标文件的完整路径，其内容等于doc_root+url_，doc_root是网站根目录
-    char* url_; // 客户请求的目标文件的文件名
-    char* version_; // HTTP协议版本号，我们仅支持HTTP/1.1
-    char* host_; // 主机名
-    int content_length_; // HTTP请求的消息体的长度
-    bool linger_; // HTTP请求是否要求保持连接
-    char* file_address_; // 客户请求的目标文件被mmap到内存中的起始位置
-    struct stat file_stat_; // 目标文件的状态。通过它我们可以判断文件是否存在、是否为目录、是否可读，并获取文件大小等信息
-    struct iovec iv_[2]; // writev写入的参数
-    int iv_count_; // 被写内存块的数量
+    int m_sockfd; // 该HTTP连接的socket
+    sockaddr_in m_address; // 对方的socket地址
+    char m_read_buf[READ_BUFFER_SIZE]; // 读缓冲区
+    int m_read_idx; // 标识读缓冲中下一个未读位置
+    int m_checked_idx; // 标识读缓冲中正在分析的字符的位置
+    int m_start_line; // 当前正在解析的行的起始位置
+    char m_write_buf[WRITE_BUFFER_SIZE]; // 写缓冲区
+    int m_write_idx; // 写缓冲区中待发送的字节数
+    HttpCheckState m_check_state; // 主状态机当前所处的状态
+    HttpMethod m_method; // 请求方法
+    char m_real_file[FILENAME_LEN]; // 客户请求的目标文件的完整路径，其内容等于doc_root+url_，doc_root是网站根目录
+    char* m_url; // 客户请求的目标文件的文件名
+    char* m_version; // HTTP协议版本号，我们仅支持HTTP/1.1
+    char* m_host; // 主机名
+    int m_content_length; // HTTP请求的消息体的长度
+    bool m_linger; // HTTP请求是否要求保持连接
+    char* m_file_address; // 客户请求的目标文件被mmap到内存中的起始位置
+    struct stat m_file_stat; // 目标文件的状态。通过它我们可以判断文件是否存在、是否为目录、是否可读，并获取文件大小等信息
+    struct iovec m_iv[2]; // writev写入的参数
+    int m_iv_count; // 被写内存块的数量
 };
 
 #endif
