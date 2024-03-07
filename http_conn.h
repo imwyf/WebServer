@@ -3,6 +3,8 @@
 
 #include <arpa/inet.h>
 #include <assert.h>
+#include <cstddef>
+#include <cstring>
 #include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
@@ -17,6 +19,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <unistd.h>
 
 /* 注：HTTP报文的格式参考
@@ -75,10 +78,11 @@ public:
     };
 
     enum HttpCode {
-        NO_REQUEST = 100, // 请求不完整，需要继续读取客户数据
+        NO_REQUEST, // 请求不完整，需要继续读取客户数据
         GET_REQUEST, // 获得了一个完整的客户请求
         OK = 200, // 访问成功
         BAD_REQUEST = 400, // 客户请求有语法错误
+        FORBIDDEN_REQUEST = 403, // 客户没有权限访问该资源
         NOT_FOUND = 404, // 客户访问的资源没有找到
         INTERNAL_SERVER_ERROR = 500 // 服务器内部错误
     };
@@ -105,18 +109,22 @@ public:
     void InitConn(int sockfd, const sockaddr_in& addr);
 
     /**
-     *
+     * 关闭连接
      */
-    void CloseConn(bool real_close);
-    void Process(); // 处理请求
+    void CloseConn();
 
     /**
-     * (非阻塞)循环读取客户数据，直到无数据可读或者对方关闭连接
+     * 由线程池中的工作线程调用，这是处理HTTP请求的入口函数，他处理客户发来的http请求报文并填充应答报文至m_iv结构，等待调用Write
+     */
+    void Process();
+
+    /**
+     * 从tcp缓冲(非阻塞)循环读取客户数据到写缓冲中，直到无数据可读或者对方关闭连接
      */
     bool Read();
 
     /**
-     * 写入应答报文(非阻塞)
+     * 向tcp缓冲写入应答报文(非阻塞)
      */
     bool Write();
 
@@ -131,7 +139,10 @@ private:
      */
     HttpCode ProcessRead();
 
-    bool ProcessWrite(HttpCode ret); // 填充http应答
+    /**
+     * 根据服务器处理HTTP请求的结果，填充应答报文进写缓冲中，然后从写缓冲复制到准备发送的m_iv结构中，以供之后调用Write写入tcp缓冲
+     */
+    bool ProcessWrite(HttpCode ret);
 
     /* 下面这一组函数被ProcessRead调用以分析HTTP请求 */
 
@@ -150,6 +161,9 @@ private:
      */
     HttpCode ParseContent(char* text);
 
+    /**
+     * 当得到一个完整、正确的HTTP请求时，我们就分析目标文件的属性。如果目标文件存在、对所有用户可读，且不是目录，则使用mmap将其映射到内存地址m_file_address处，并告诉调用者获取文件成功
+     */
     HttpCode DoRequest();
 
     /**
@@ -158,18 +172,50 @@ private:
     char* GetLine() { return m_read_buf + m_start_line; }
 
     /**
-     * 在read_buf标识出一个完整的行：分析新读入的数据中是否有\r\n，返回LINE_OK表示遇到\r\n，m_checked_idx在本行结尾；LINE_OPEN表示没读取到\r\n，m_checked_idx在缓存区末尾，需要继续读取，LINE_BAD表示出错
+     * 在read_buf标识出一个完整的行：分析新读入的数据中是否有\r\n，返回LINE_OK表示遇到\r\n，m_checked_idx在新行第一个字符；LINE_OPEN表示没读取到\r\n，m_checked_idx在缓存区末尾，需要继续读取，LINE_BAD表示出错
      */
     HttpLineStatus ParseLine();
 
     /* 下面这一组函数被ProcessWrite调用以填充HTTP应答 */
+
+    /**
+     * 对内存映射区执行unmap操作
+     */
     void Unmap();
+
+    /**
+     * 往写缓冲中写入待发送的应答报文
+     */
     bool AddResponse(const char* format, ...);
+
+    /**
+     * 向应答报文中写入应答体
+     */
     bool AddContent(const char* content);
-    bool AddStatusLine(int status, const char* title);
+
+    /**
+     * 向应答报文中写入状态行
+     */
+    bool AddStatusLine(const char* title);
+
+    /**
+     * 向应答报文中写入应答头
+     */
     bool AddHeaders(int content_length);
+
+    /**
+     * 向应答报文中写入应答报文大小
+     */
     bool AddContentLength(int content_length);
+
+    /**
+     * 向应答报文中写入是否保持长连接
+     */
     bool AddLinger();
+
+    /**
+     * 向应答报文中写入空行以分割应答头和应答体
+     */
     bool AddBlankLine();
 
 public:
@@ -184,7 +230,7 @@ private:
     int m_checked_idx; // 标识读缓冲中正在分析的字符的位置
     int m_start_line; // 当前正在解析的行的起始位置
     char m_write_buf[WRITE_BUFFER_SIZE]; // 写缓冲区
-    int m_write_idx; // 写缓冲区中待发送的字节数
+    int m_write_idx; // 写缓冲区中待发送最后一个字节的位置
     HttpCheckState m_check_state; // 主状态机当前所处的状态
     HttpMethod m_method; // 请求方法
     char m_real_file[FILENAME_LEN]; // 客户请求的目标文件的完整路径，其内容等于doc_root+url_，doc_root是网站根目录
