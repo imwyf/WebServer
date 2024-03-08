@@ -362,17 +362,35 @@ bool HttpConn::AddResponse(const char* format, ...)
     return true;
 }
 
-bool HttpConn::AddStatusLine(const char* title) { return AddResponse("%s\r\n", title); }
+bool HttpConn::AddStatusLine(const char* title)
+{
+    return AddResponse("%s\r\n", title);
+}
 
-bool HttpConn::AddHeaders(int content_len) { return AddContentLength(content_len) && AddLinger() && AddBlankLine(); }
+bool HttpConn::AddHeaders(int content_len)
+{
+    return AddContentLength(content_len) && AddLinger() && AddBlankLine();
+}
 
-bool HttpConn::AddContentLength(int content_len) { return AddResponse("Content-Length:%d\r\n", content_len); }
+bool HttpConn::AddContentLength(int content_len)
+{
+    return AddResponse("Content-Length:%d\r\n", content_len);
+}
 
-bool HttpConn::AddLinger() { return AddResponse("Connection:%s\r\n", (m_linger == true) ? "keep-alive " : " close "); }
+bool HttpConn::AddLinger()
+{
+    return AddResponse("Connection:%s\r\n", (m_linger == true) ? "keep-alive " : " close ");
+}
 
-bool HttpConn::AddBlankLine() { return AddResponse("%s", "\r\n"); }
+bool HttpConn::AddBlankLine()
+{
+    return AddResponse("%s", "\r\n");
+}
 
-bool HttpConn::AddContent(const char* content) { return AddResponse("%s", content); }
+bool HttpConn::AddContent(const char* content)
+{
+    return AddResponse("%s", content);
+}
 
 bool HttpConn::ProcessWrite(HttpCode ret)
 {

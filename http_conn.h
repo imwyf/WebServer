@@ -52,7 +52,7 @@
 class HttpConn {
     /* ----------------------------------------------------定义一些http参数--------------------------------------------
      */
-public:
+public: // 暴露在外常量以及枚举类
     static const int FILENAME_LEN = 200; // 文件名字符数
     static const int READ_BUFFER_SIZE = 2048; // 读缓冲区大小
     static const int WRITE_BUFFER_SIZE = 1024; // 写缓冲区大小
@@ -98,9 +98,11 @@ public:
         LINE_OPEN // 行数据尚且不完整
     };
 
-    /* -------------------------------------------------处理http请求的函数-------------------------------------------
-     */
-public:
+public: // 暴露的类属性
+    static int m_epollfd; // 所有socket上的事件都被注册到同一个epoll内核事件表中，所以将epoll文件描述符设置为静态的
+    static int m_user_count; // 统计用户数量
+
+public: // 供外部调用的函数
     /**
      * 初始化请求，设置参数
      * @param sockfd 从哪个fd收到该请求
@@ -128,7 +130,7 @@ public:
      */
     bool Write();
 
-private:
+private: // 内部处理http请求的函数
     /**
      * 初始化一些变量(全0初始化)，并调用构造函数，构造请求对象
      */
@@ -144,7 +146,8 @@ private:
      */
     bool ProcessWrite(HttpCode ret);
 
-    /* 下面这一组函数被ProcessRead调用以分析HTTP请求 */
+    /* 下面这一组函数被ProcessRead调用以分析HTTP请求
+     */
 
     /**
      * 解析HTTP请求行，获得请求方法、目标URL，以及HTTP版本号
@@ -176,7 +179,8 @@ private:
      */
     HttpLineStatus ParseLine();
 
-    /* 下面这一组函数被ProcessWrite调用以填充HTTP应答 */
+    /* 下面这一组函数被ProcessWrite调用以填充HTTP应答
+     */
 
     /**
      * 对内存映射区执行unmap操作
@@ -218,11 +222,7 @@ private:
      */
     bool AddBlankLine();
 
-public:
-    static int m_epollfd; // 所有socket上的事件都被注册到同一个epoll内核事件表中，所以将epoll文件描述符设置为静态的
-    static int m_user_count; // 统计用户数量
-
-private:
+private: // 内部使用的类属性
     int m_sockfd; // 该HTTP连接的socket
     sockaddr_in m_address; // 对方的socket地址
     char m_read_buf[READ_BUFFER_SIZE]; // 读缓冲区
