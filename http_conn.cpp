@@ -457,14 +457,14 @@ bool HttpConn::ProcessWrite(HttpCode ret)
 
 void HttpConn::Process()
 {
-    HttpCode read_ret = ProcessRead();
-    if (read_ret == NO_REQUEST) {
-        ModFD(m_epollfd, m_sockfd, EPOLLIN);
+    HttpCode read_ret = ProcessRead(); // 先根据读缓冲中的请求报文处理请求
+    if (read_ret == NO_REQUEST) { // 若是发现请求报文不完整
+        ModFD(m_epollfd, m_sockfd, EPOLLIN); // 设置epoll事件为收，提醒主线程应该继续从客户端那里接受报文
         return;
     }
-    bool write_ret = ProcessWrite(read_ret);
-    if (!write_ret) {
-        CloseConn();
+    bool write_ret = ProcessWrite(read_ret); // 根据处理结果，向写缓冲中写入应答报文
+    if (!write_ret) { // 若没有要写的
+        CloseConn(); // 关闭连接
     }
-    ModFD(m_epollfd, m_sockfd, EPOLLOUT);
+    ModFD(m_epollfd, m_sockfd, EPOLLOUT); // 设置epoll事件为发，提醒主线程应答报文准备好了
 }

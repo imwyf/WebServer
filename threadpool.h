@@ -14,7 +14,7 @@
  */
 template <typename T>
 class ThreadPool {
-public:
+public: // 对外暴露的接口
     /**
      * @param threads_num 线程池中线程的数量
      * @param max_request 请求队列容量
@@ -64,7 +64,7 @@ public:
         }
     }
 
-private:
+private: // 供内部调用的函数
     /**
      * @brief 工作线程运行的函数，它调用传入线程池的run()：不断从工作队列中取出任务并执行之
      *
@@ -103,7 +103,7 @@ private:
         }
     }
 
-private:
+private: // 私有类属性
     int m_thread_num; // 线程池中的线程数
     int m_max_request; // 请求队列容量
     pthread_t* m_threadpool; // 描述线程池的数组
