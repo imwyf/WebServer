@@ -1,9 +1,14 @@
 #ifndef _BUFFER_
 #define _BUFFER_
 
+#include <assert.h>
 #include <atomic>
 #include <cstddef>
+#include <cstring>
+#include <errno.h>
 #include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
 #include <vector>
 
 /*
@@ -15,10 +20,10 @@
 */
 
 /**
- * 一个缓冲区，包含，是vector<char>的封装，可以自动扩容
+ * 一个缓冲区，包含，是vector<char>的封装，可以自动扩容,提供prepend空间，让程序能以很低的代价在数据前面添加几个字节
  */
 class Buffer {
-    // TODO:为什么用裸指针，用智能指针或iterator？
+    // 为什么用裸指针，用智能指针或iterator？-> 因为读数据的iovec结构需要裸指针作为参数
 public:
     static const size_t INIT_BUFFER_SIZE = 1024;
     static const size_t INIT_PREPEND_SIZE = 8; // prependable初始大小,即readIndex初始的位置
@@ -45,28 +50,33 @@ public:
     /**
      * 返回要预置数据的末尾位置
      */
+    char* GetPrePtr() { return GetBeginPtr() + m_pre_pos; }
     const char* GetPrePtr() const { return GetBeginPtr() + m_pre_pos; }
     /**
      * 返回要取出数据的起始位置
      */
+    char* GetReadPtr() { return GetBeginPtr() + m_read_pos; }
     const char* GetReadPtr() const { return GetBeginPtr() + m_read_pos; }
+
     /**
      * 返回可写入数据的起始位置
      */
+    char* GetWritePtr() { return GetBeginPtr() + m_write_pos; }
     const char* GetWritePtr() const { return GetBeginPtr() + m_write_pos; }
     /**
      * 从fd向缓冲区中写入数据
      */
-    ssize_t Write(int fd, int* errno);
+    ssize_t ReadFromFd(int fd, int* saved_errno);
     /**
      * 从缓冲区中取出数据到fd
      */
-    ssize_t Read(int fd, int* errno);
+    ssize_t WriteToFd(int fd, int* saved_errno);
 
 private: // 成员函数
     /**
      * 返回缓冲区起始地址
      */
+    char* GetBeginPtr() { return &*m_buffer.begin(); }
     const char* GetBeginPtr() const { return &*m_buffer.begin(); }
     /**
      * 判断缓冲区是否够用，不够就创造空间（调用resize函数）
