@@ -22,29 +22,7 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
-/* 注：HTTP报文的格式参考
-----------------------------------1.发送--------------------------------------------
-            | POST http://www.baidu.com HTTP/1.1                         \r\n       (请求行)
-            | Host: api.efxnow.com                                       \r\n       (一条请求头)
-            | Content-Type: application/x-www-form-urlencoded            \r\n       (一条请求头)
-            | Content-Length: length                                     \r\n       (一条请求头)
-            |                                                            \r\n       (空行)
-            | UserID=string&PWD=string&OrderConfirmation=string          \r\n       (请求体)
-----------------------------------2.应答--------------------------------------------
-            | HTTP/1.1 200 OK
-            | Content-Type: text/xml; charset=utf-8
-            | Content-Length: length
-            |
-            | <? xml version = "1.0" encoding = "utf-8" ?>
-            | < objPlaceOrderResponse xmlns = "https://api.efxnow.com/webservices2.3" >
-            | < Success >boolean</ Success >
-            | < ErrorDescription >string</ ErrorDescription >
-            | < ErrorNumber >int</ ErrorNumber >
-            | < CustomerOrderReference >long</ CustomerOrderReference >
-            | < OrderConfirmation >string</ OrderConfirmation >
-            | < CustomerDealRef >string</ CustomerDealRef >
-            | </ objPlaceOrderResponse >
- */
+
 
 /**
  * 封装的连接类，其中包含了与客户端的会话所需的fd，以及处理http请求的函数，作为线程池的模板参数类使用
@@ -59,44 +37,13 @@ public: // 暴露在外常量以及枚举类
     HttpConn() { }
     ~HttpConn() { }
 
-    enum HttpMethod {
-        GET,
-        POST,
-        HEAD,
-        PUT,
-        DELETE,
-        TRACE,
-        OPTIONS,
-        CONNECT,
-        PATCH
-    };
 
-    enum HttpCheckState {
-        CHECK_STATE_REQUESTLINE, // 正在分析请求行
-        CHECK_STATE_HEADER, // 正在分析头部字段
-        CHECK_STATE_CONTENT // 正在分析请求体
-    };
 
-    enum HttpCode {
-        NO_REQUEST, // 请求不完整，需要继续读取客户数据
-        GET_REQUEST, // 获得了一个完整的客户请求
-        OK = 200, // 访问成功
-        BAD_REQUEST = 400, // 客户请求有语法错误
-        FORBIDDEN_REQUEST = 403, // 客户没有权限访问该资源
-        NOT_FOUND = 404, // 客户访问的资源没有找到
-        INTERNAL_SERVER_ERROR = 500 // 服务器内部错误
-    };
 
-    enum HttpVersion {
-        HTTP_1_0 = 10,
-        HTTP_1_1 = 11
-    };
 
-    enum HttpLineStatus {
-        LINE_OK = 0, // 读取到一个完整的行
-        LINE_BAD, // 行出错
-        LINE_OPEN // 行数据尚且不完整
-    };
+
+
+
 
 public: // 暴露的类属性
     static int m_epollfd; // 所有socket上的事件都被注册到同一个epoll内核事件表中，所以将epoll文件描述符设置为静态的
