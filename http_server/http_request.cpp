@@ -61,11 +61,11 @@ bool HttpRequest::Parse(Buffer& buff)
         }
         if (lineEnd == buff.GetWritePtr()) { //
             if (m_method == "POST" && m_state == CHECK_STATE_FINISH) {
-                buff.RetrieveUntil(lineEnd); // readpos += xxx
+                buff.SetReadPos(lineEnd); // readpos += xxx
             }
             break;
         }
-        buff.RetrieveUntil(lineEnd + 2); // readpos += xxx
+        buff.SetReadPos(lineEnd + 2); // readpos += xxx
     }
     return true;
 }

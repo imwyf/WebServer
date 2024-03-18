@@ -57,12 +57,13 @@ public:
      */
     char* GetReadPtr() { return GetBeginPtr() + m_read_pos; }
     const char* GetReadPtr() const { return GetBeginPtr() + m_read_pos; }
-
+    void SetReadPos(char* ptr) { m_read_pos += (ptr - GetReadPtr()); }
     /**
      * 返回可写入数据的起始位置
      */
     char* GetWritePtr() { return GetBeginPtr() + m_write_pos; }
     const char* GetWritePtr() const { return GetBeginPtr() + m_write_pos; }
+    void SetWritePos(char* ptr) { m_write_pos += (ptr - GetWritePtr()); }
     /**
      * 从fd向缓冲区中写入数据
      */
