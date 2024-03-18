@@ -41,7 +41,7 @@ public:
     enum HttpCheckState {
         CHECK_STATE_REQUESTLINE, // 正在分析请求行
         CHECK_STATE_HEADER, // 正在分析头部字段
-        CHECK_STATE_CONTENT, // 正在分析请求体
+        CHECK_STATE_BODY, // 正在分析请求体
         CHECK_STATE_FINISH // 分析完毕
     };
     enum HttpMethod {
@@ -73,6 +73,10 @@ public:
     HttpRequest() { Init(); }
     ~HttpRequest() = default;
 
+    void Init();
+    /**
+     * 从buff中读取每一行来解析的主方法入口
+     */
     bool Parse(Buffer& buff);
 
     std::string GetPath() const { return m_path; }
@@ -82,31 +86,28 @@ public:
     bool IsKeepAlive() const;
 
 private:
-    void Init();
-
     /* 下面的3个方法被解析请求的主方法Parse调用以分别解析请求的3个部分 */
 
     /**
-     * 解析请求行的入口方法
+     * 解析请求行的入口方法，返回true代表解析成功，返回false代表本行不是请求行的正确格式
      */
     bool ParseRequestLine(const std::string& line);
     /**
-     * 解析请求头的入口方法
+     * 解析一行请求头的入口方法，返回true代表解析成功，返回false代表本行不是请求头的正确格式
      */
-    void ParseHeader(const std::string& line);
+    bool ParseHeader(const std::string& line);
     /**
-     *  解析请求体的入口方法
+     *  解析请求体的入口方法，返回true代表解析成功，返回false代表本行不是请求体的正确格式
      */
-    void ParseBody(const std::string& line);
+    bool ParseBody(const std::string& line);
 
-    void ParsePath();
-    void ParsePost();
     void ParseFromUrlencoded();
 
     HttpCheckState m_state;
-    std::string m_method, m_path, m_version, m_body;
+    std::string m_method, m_version, m_path; // 解析后请求行的三个属性之一
     std::unordered_map<std::string, std::string> m_header; // 解析后本请求的头部属性
-    std::unordered_map<std::string, std::string> m_post; // 解析后本请求的post属性
+    std::string m_body; // 保存的请求体
+    std::unordered_map<std::string, std::string> m_post; // 解析后本请求的请求体中post上来的属性
 
     static const std::unordered_set<std::string> DEFAULT_HTML;
     static const std::unordered_map<std::string, int> DEFAULT_HTML_TAG;

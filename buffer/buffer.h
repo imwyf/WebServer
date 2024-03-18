@@ -33,12 +33,24 @@ public:
         : m_buffer(INIT_PREPEND_SIZE + init_buffer_size) // pre_pos是正常情况下的buffer起点
         , m_pre_pos(INIT_PREPEND_SIZE)
         , m_read_pos(INIT_PREPEND_SIZE)
-        , m_write_pos(INIT_PREPEND_SIZE) {};
+        , m_write_pos(INIT_PREPEND_SIZE)
+    {
+    }
     ~Buffer() = default;
+    /**
+     * 清空内容，pos恢复成初始状态,但是容量size不变
+     */
+    void Clear()
+    {
+        bzero(&m_buffer[0], m_buffer.size());
+        m_read_pos = INIT_PREPEND_SIZE;
+        m_write_pos = INIT_PREPEND_SIZE;
+    }
     /**
      * 缓冲区中可写的字节数
      */
-    size_t WriteableBytes() const { return m_buffer.size() - m_write_pos; }
+    size_t
+    WriteableBytes() const { return m_buffer.size() - m_write_pos; }
     /**
      * 缓冲区中未读的字节数
      */
@@ -58,6 +70,7 @@ public:
     char* GetReadPtr() { return GetBeginPtr() + m_read_pos; }
     const char* GetReadPtr() const { return GetBeginPtr() + m_read_pos; }
     void SetReadPos(char* ptr) { m_read_pos += (ptr - GetReadPtr()); }
+    void AddReadPos(size_t len) { m_read_pos += len; }
     /**
      * 返回可写入数据的起始位置
      */
