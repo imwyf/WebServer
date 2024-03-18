@@ -82,6 +82,9 @@ public:
     std::string GetPath() const { return m_path; }
     std::string GetMethod() const { return m_method; }
     std::string GetVersion() const { return m_version; }
+    /**
+     * 返回Post请求体中的内容
+     */
     std::string GetPost(const std::string& key);
     bool IsKeepAlive() const;
 
@@ -111,7 +114,6 @@ private:
 
     static const std::unordered_set<std::string> DEFAULT_HTML;
     static const std::unordered_map<std::string, int> DEFAULT_HTML_TAG;
-    static int ConvertHex(char ch);
 };
 
 #endif // _HTTP_REQUEST_

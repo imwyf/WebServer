@@ -12,10 +12,13 @@
 
 class HttpResponse {
 public:
-    HttpResponse();
-    ~HttpResponse();
+    HttpResponse(const std::string& srcDir, std::string path, bool isKeepAlive = false, int code = -1)
+    {
+        Init(srcDir, path, isKeepAlive, code);
+    }
+    ~HttpResponse() { UnmapFile(); }
 
-    void Init(const std::string& srcDir, std::string& path, bool isKeepAlive = false, int code = -1);
+    void Init(const std::string& srcDir, std::string path, bool isKeepAlive = false, int code = -1);
     void MakeResponse(Buffer& buff);
     void UnmapFile();
     char* File();

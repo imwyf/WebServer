@@ -2,6 +2,15 @@
 #include <cassert>
 #include <string>
 
+static int ConvertHex(char ch)
+{
+    if (ch >= 'A' && ch <= 'F')
+        return ch - 'A' + 10;
+    if (ch >= 'a' && ch <= 'f')
+        return ch - 'a' + 10;
+    return ch;
+}
+
 // TODO:修改
 std::string HttpRequest::GetPost(const std::string& key)
 {
@@ -48,12 +57,12 @@ bool HttpRequest::Parse(Buffer& buff)
             m_state = CHECK_STATE_HEADER; // 解析成功，转移状态
             break;
         case CHECK_STATE_HEADER:
-            if (!ParseHeader(line)) { // 解析一行请求头，返回fasle代表本行不是请求头，即请求头全部解析完成
-                m_state = CHECK_STATE_BODY; // 转移状态至解析请求体
-            }
-
-            if (buff.ReadableBytes() <= 2) { // 请求头解析到最后时，可能没有请求体
-                m_state = CHECK_STATE_FINISH; // 转移状态至解析完成
+            if (!ParseHeader(line)) { // 解析一行请求头，返回false代表本行不是请求头，即请求头全部解析完成
+                if (buff.ReadableBytes() <= 2) { // 若只剩下\r\n，说明没有请求体
+                    m_state = CHECK_STATE_FINISH; // 解析结束
+                } else {
+                    m_state = CHECK_STATE_BODY; // 转移状态至解析请求体
+                }
             }
             break;
         case CHECK_STATE_BODY:
@@ -68,11 +77,11 @@ bool HttpRequest::Parse(Buffer& buff)
         }
         if (lineEnd == buff.GetWritePtr()) { // 没找到分隔符
             if (m_method == "POST" && m_state == CHECK_STATE_FINISH) { // POST请求体最后直接结束，没有分隔符
-                buff.SetReadPos(lineEnd); // readpos += xxx
+                buff.SetReadPos(lineEnd); // readpos +=
             }
             break;
         }
-        buff.SetReadPos(lineEnd + 2); // readpos += xxx
+        buff.SetReadPos(lineEnd + 2); // readpos +=
     }
     return true;
 }
@@ -182,13 +191,4 @@ void HttpRequest::ParseFromUrlencoded()
         value = m_body.substr(j, i - j);
         m_post[key] = value;
     }
-}
-
-int HttpRequest::ConvertHex(char ch)
-{
-    if (ch >= 'A' && ch <= 'F')
-        return ch - 'A' + 10;
-    if (ch >= 'a' && ch <= 'f')
-        return ch - 'a' + 10;
-    return ch;
 }

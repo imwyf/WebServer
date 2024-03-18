@@ -69,14 +69,23 @@ public:
      */
     char* GetReadPtr() { return GetBeginPtr() + m_read_pos; }
     const char* GetReadPtr() const { return GetBeginPtr() + m_read_pos; }
-    void SetReadPos(char* ptr) { m_read_pos += (ptr - GetReadPtr()); }
-    void AddReadPos(size_t len) { m_read_pos += len; }
+    void SetReadPos(char* ptr) { AddReadPos(ptr - GetReadPtr()); }
+    void AddReadPos(size_t len)
+    {
+        assert(len <= ReadableBytes());
+        m_read_pos += len;
+    }
     /**
      * 返回可写入数据的起始位置
      */
     char* GetWritePtr() { return GetBeginPtr() + m_write_pos; }
     const char* GetWritePtr() const { return GetBeginPtr() + m_write_pos; }
-    void SetWritePos(char* ptr) { m_write_pos += (ptr - GetWritePtr()); }
+    void SetWritePos(char* ptr) { AddWritePos(ptr - GetWritePtr()); }
+    void AddWritePos(size_t len)
+    {
+        assert(len <= WriteableBytes());
+        m_write_pos += len;
+    }
     /**
      * 从fd向缓冲区中写入数据
      */
