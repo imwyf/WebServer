@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstring>
 #include <errno.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
@@ -95,11 +96,25 @@ public:
      */
     ssize_t WriteToFd(int fd, int* saved_errno);
 
+    /**
+     * 向缓冲区写入str，并更新writePos
+     */
+    void Append(const std::string& str)
+    {
+        assert(str.data());
+        EnsureWriteable(str.length());
+        std::copy(str.data(), str.data() + str.length(), GetWritePtr());
+        AddWritePos(str.length());
+    }
+
 private: // 成员函数
     /**
      * 返回缓冲区起始地址
      */
-    char* GetBeginPtr() { return &*m_buffer.begin(); }
+    char* GetBeginPtr()
+    {
+        return &*m_buffer.begin();
+    }
     const char* GetBeginPtr() const { return &*m_buffer.begin(); }
     /**
      * 判断缓冲区是否够用，不够就创造空间（调用resize函数）

@@ -11,6 +11,14 @@ static int ConvertHex(char ch)
     return ch;
 }
 
+void HttpRequest::Reset()
+{
+    m_method = m_body = m_path = m_version = "";
+    m_state = CHECK_STATE_REQUESTLINE;
+    m_header.clear();
+    m_post.clear();
+}
+
 // TODO:修改
 std::string HttpRequest::GetPost(const std::string& key)
 {
@@ -27,14 +35,6 @@ bool HttpRequest::IsKeepAlive() const
         return m_header.at("Connection") == "keep-alive" && m_version == "1.1";
     }
     return false;
-}
-
-void HttpRequest::Init()
-{
-    m_method = m_body = m_path = m_version = "";
-    m_state = CHECK_STATE_REQUESTLINE;
-    m_header.clear();
-    m_post.clear();
 }
 
 /**

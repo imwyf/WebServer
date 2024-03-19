@@ -34,7 +34,7 @@
  */
 
 /**
- * 用于处理http请求报文的类
+ * 用于处理http请求报文的类，不包含读缓冲，目的是通过读取读缓冲的数据并解析，将请求中的属性一一保存下来
  */
 class HttpRequest {
 public:
@@ -44,38 +44,15 @@ public:
         CHECK_STATE_BODY, // 正在分析请求体
         CHECK_STATE_FINISH // 分析完毕
     };
-    enum HttpMethod {
-        GET,
-        POST,
-        HEAD,
-        PUT,
-        DELETE,
-        TRACE,
-        OPTIONS,
-        CONNECT,
-        PATCH
-    };
-    enum HttpCode {
-        NO_REQUEST, // 请求不完整，需要继续读取客户数据（服务器内部使用）
-        GET_REQUEST, // 获得了一个完整的客户请求（服务器内部使用）
-        FILE_REQUEST, // 文件请求到了（服务器内部使用）
-        OK = 200, // 访问成功
-        BAD_REQUEST = 400, // 客户请求有语法错误
-        FORBIDDEN_REQUEST = 403, // 客户没有权限访问该资源
-        NOT_FOUND = 404, // 客户访问的资源没有找到
-        CLOSED_CONNECTION = 499, // 连接已关闭
-        INTERNAL_SERVER_ERROR = 500, // 服务器内部错误
-    };
-    enum HttpVersion {
-        HTTP_1_0 = 10,
-        HTTP_1_1 = 11
-    };
-    HttpRequest() { Init(); }
+    HttpRequest() { Reset(); }
     ~HttpRequest() = default;
-
-    void Init();
     /**
-     * 从buff中读取每一行来解析的主方法入口
+     * 重置保存的请求报文属性
+     */
+    void Reset();
+
+    /**
+     * 从buff中读取每一行来解析
      */
     bool Parse(Buffer& buff);
 

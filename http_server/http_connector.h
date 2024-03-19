@@ -11,11 +11,21 @@
 #include "http_request.h"
 #include "http_response.h"
 
+/*
+ * HttpConnector对象构造即初始化，析构时自动Close
+ */
+
+/**
+ * http连接的封装类，其包含一对读写缓冲区，和用于解析http请求报文、填充应答报文的的HttpRequest、HttpResponse模块，为了实现buffer与上述两个模块的解耦，并未将buffer嵌入模块中，
+ * 而是作为HttpConnector的模块与两个http解析模块平行。此类与应作为线程池的工作队列中使用的模板类使用，即task本身。
+ */
 class HttpConnector {
 public:
-    HttpConnector(int sockFd, const sockaddr_in& addr) { Init(sockFd, addr); }
+    /**
+     * 构造方法，应传递connfd，以及客户端addr作为参数
+     */
+    HttpConnector(int sockFd, const sockaddr_in& addr);
     ~HttpConnector() { Close(); }
-    void Init(int sockFd, const sockaddr_in& addr);
 
     /**
      * 从本连接的fd向读缓冲写入
