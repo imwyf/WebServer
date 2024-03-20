@@ -1,6 +1,5 @@
 #include "http_request.h"
-#include <cassert>
-#include <string>
+
 
 static int ConvertHex(char ch)
 {

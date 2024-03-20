@@ -42,7 +42,7 @@ public:
     char* GetFile() { return m_file; }
     size_t FileLen() const { return m_file_stat.st_size; }
     /**
-     * 向buff写入错误信息
+     * 向buff直接写入错误页
      */
     void ErrorContent(Buffer& buff, std::string message) const;
     int GetCode() const { return m_code; }

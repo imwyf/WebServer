@@ -2,8 +2,10 @@
 #define _HTTP_CONNECTOR_H
 
 #include <arpa/inet.h>
+#include <cassert>
 #include <cerrno>
 #include <cstdlib>
+#include <string>
 #include <sys/types.h>
 #include <sys/uio.h>
 
