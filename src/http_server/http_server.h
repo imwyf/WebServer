@@ -18,16 +18,23 @@
 class HttpServer {
 public:
     static const std::string DEFAULTCONFIG_FILEPATH;
-
-    HttpServer(int port, int trigMode, int timeoutMS, bool OptLinger, int threadNum);
-    ~HttpServer();
+    /**
+     * 服务器初始化，暂时不启动监听服务，port：监听的端口，is_ET：是否开启ET，timeout：超时器，thread_num：线程池大小
+     */
+    HttpServer(int port, bool is_ET, int timeout, int thread_num);
+    ~HttpServer() { CloseAllConn(); }
     void Start();
 
 private:
     /* 下面的函数用来配置服务器 */
-    bool InitConn();
+
+    /**
+     * 初始化剪监听服务器
+     */
+    bool InitListen(bool linger);
     void AddClient(int fd, sockaddr_in addr);
     void CloseConn(HttpConnector* client);
+    void CloseAllConn();
     /**
      * 从配置文件读取属性并设置
      */
@@ -47,12 +54,13 @@ private:
     static const int MAX_FD = 65536;
     static int SetFdNonblock(int fd);
 
-    int port_;
-    bool openLinger_;
-    int timeoutMS_; /* 毫秒MS */
-    bool isClose_;
-    int listenFd_ {};
-    char* srcDir_;
+    /* 下面的参数用来控制listenFd */
+    int m_port;
+    bool m_linger;
+    int m_timeout;
+    bool m_is_listen;
+    int m_listenFd {};
+    char* m_src_dir;
 
     std::unordered_map<int, HttpConnector> m_users;
     std::unique_ptr<Epoll> m_epoll;

@@ -1,9 +1,5 @@
 #include "http_connector.h"
 
-const char* HttpConnector::SRC_DIR;
-std::atomic<int> HttpConnector::g_user_count;
-bool HttpConnector::g_is_ET;
-
 HttpConnector::HttpConnector(int sockfd, const sockaddr_in& addr)
 {
     assert(sockfd > 0);
