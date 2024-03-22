@@ -26,15 +26,15 @@ public:
     /**
      * 构造方法，应传递connfd，以及客户端addr作为参数
      */
-    HttpConnector(int sockFd, const sockaddr_in& addr);
+    HttpConnector(int sockFd, const sockaddr_in& addr) { Reset(sockFd, addr); }
     ~HttpConnector() { Close(); }
-
+    void Reset(int sockFd, const sockaddr_in& addr);
     /**
      * 从本连接的fd向读缓冲写入
      */
     ssize_t Read(int* saveErrno);
     /**
-     * 从写缓冲向本连接的fd写入
+     * 从写缓冲向本连接的fd写出
      */
     ssize_t Write(int* saveErrno);
 
@@ -54,6 +54,9 @@ public:
      */
     bool Process();
 
+    /**
+     * 返回需要写出的字节数
+     */
     int ToWriteBytes() { return m_iov[0].iov_len + m_iov[1].iov_len; }
 
     bool IsKeepAlive() const { return m_request.IsKeepAlive(); }

@@ -1,6 +1,8 @@
 #include "http_connector.h"
 
-HttpConnector::HttpConnector(int sockfd, const sockaddr_in& addr)
+static bool g_is_ET = true;
+
+void HttpConnector::Reset(int sockfd, const sockaddr_in& addr)
 {
     assert(sockfd > 0);
     g_user_count++;

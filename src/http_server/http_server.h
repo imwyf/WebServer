@@ -19,19 +19,29 @@ class HttpServer {
 public:
     static const std::string DEFAULTCONFIG_FILEPATH;
     /**
-     * 服务器初始化，暂时不启动监听服务，port：监听的端口，is_ET：是否开启ET，timeout：超时器，thread_num：线程池大小
+     * 服务器初始化，暂时不启动监听服务，port：监听的端口，timeout：超时器，thread_num：线程池大小
      */
-    HttpServer(int port, bool is_ET, int timeout, int thread_num);
-    ~HttpServer() { CloseAllConn(); }
+    HttpServer(int port, int timeout, bool linger, int thread_num);
+    ~HttpServer()
+    {
+        CloseAllConn();
+        close(m_listenFd);
+        m_is_listen = false;
+        free(m_src_dir);
+        //    SqlConnPool::Instance()->ClosePool();
+    }
+    /**
+     * 启动服务器，启动监听服务
+     */
     void Start();
 
 private:
     /* 下面的函数用来配置服务器 */
 
     /**
-     * 初始化剪监听服务器
+     * 初始化监听服务器
      */
-    bool InitListen(bool linger);
+    bool InitListen();
     void AddClient(int fd, sockaddr_in addr);
     void CloseConn(HttpConnector* client);
     void CloseAllConn();
@@ -39,7 +49,9 @@ private:
      * 从配置文件读取属性并设置
      */
     bool SetPropertyFromFile(const std::string& path = DEFAULTCONFIG_FILEPATH);
-
+    /**
+     * 向fd直接发送info
+     */
     static void SendError(int fd, const char* info);
     void ExtentTime(HttpConnector* client);
 
