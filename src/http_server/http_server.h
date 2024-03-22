@@ -10,8 +10,8 @@
 #include <unistd.h>
 #include <unordered_map>
 
-// #include "../utils/heap_timer.h"
 #include "../utils/threadpool.h"
+#include "../utils/timer.h"
 #include "epoll.h"
 #include "http_connector.h"
 
@@ -24,7 +24,6 @@ public:
     HttpServer(int port, int timeout, bool linger, int thread_num);
     ~HttpServer()
     {
-        CloseAllConn();
         close(m_listenFd);
         m_is_listen = false;
         free(m_src_dir);
@@ -44,7 +43,6 @@ private:
     bool InitListen();
     void AddClient(int fd, sockaddr_in addr);
     void CloseConn(HttpConnector* client);
-    void CloseAllConn();
     /**
      * 从配置文件读取属性并设置
      */
@@ -77,7 +75,7 @@ private:
     std::unordered_map<int, HttpConnector> m_users;
     std::unique_ptr<Epoll> m_epoll;
     std::unique_ptr<ThreadPool> m_threadpool;
-    // std::unique_ptr<HeapTimer> timer_;
+    std::unique_ptr<Timer> m_timer;
 };
 
 #endif // _WEBSERVER_H_

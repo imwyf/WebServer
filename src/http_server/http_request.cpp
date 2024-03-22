@@ -18,7 +18,6 @@ void HttpRequest::Reset()
     m_post.clear();
 }
 
-// TODO:修改
 std::string HttpRequest::GetPost(const std::string& key)
 {
     assert(key != "");

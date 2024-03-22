@@ -1,13 +1,13 @@
 #include "http_server.h"
+#include "../utils/debug.h"
 #include "../utils/json.h" // https://github.com/nlohmann/json/tree/develop/single_include/nlohmann/json.hpp
+#include "../utils/timer.h"
+#include "http_connector.h"
 #include <cstddef>
 #include <cstdio>
 #include <fstream>
 #include <memory>
 #include <sys/epoll.h>
-// #include "../utils/heap_timer.h"
-#include "../utils/debug.h"
-#include "http_connector.h"
 using json = nlohmann::json;
 static const std::string CONFIG_FILEPATH = "../conf_http_server.json";
 
@@ -18,7 +18,7 @@ HttpServer::HttpServer(int port, int timeout, bool linger, int thread_num)
     , m_linger(linger)
     , m_epoll(std::make_unique<Epoll>())
     , m_threadpool(std::make_unique<ThreadPool>(thread_num))
-// , timer_(new HeapTimer())
+    , m_timer(std::make_unique<Timer>())
 {
     m_src_dir = getcwd(nullptr, 256);
     assert(m_src_dir);
@@ -53,9 +53,9 @@ void HttpServer::Start()
     m_is_listen = true; // 启动监听
     //    if(!isClose_) { LOG_INFO("========== Server start =========="); }
     while (m_is_listen) {
-        // if (m_timeout > 0) {
-        //     timeout = timer_->GetNextTick(); // 获取下一个事件剩余时间
-        // }
+        if (m_timeout > 0) {
+            timeout = m_timer->GetNextTick(); // 获取下一个事件剩余时间
+        }
         int eventCnt = m_epoll->Wait(timeout);
         for (int i = 0; i < eventCnt; i++) { // 根据epoll上的事件，转发至对应方法
             int fd = m_epoll->GetEventFd(i);
@@ -161,10 +161,6 @@ void HttpServer::SendError(int fd, const char* info)
     close(fd);
 }
 
-void HttpServer::CloseAllConn()
-{
-}
-
 void HttpServer::CloseConn(HttpConnector* client)
 {
     assert(client);
@@ -190,7 +186,7 @@ void HttpServer::OnListen()
         m_users[connfd].Reset(connfd, addr);
         if (m_timeout > 0) {
             // 将新连接添加到定时器中
-            // m_timer->add(connfd, m_timeout, [this, capture0 = &m_users[connfd]] { CloseConn(capture0); });
+            m_timer->add(connfd, m_timeout, [this, capture0 = &m_users[connfd]] { CloseConn(capture0); });
         }
         m_epoll->AddFd(connfd, EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLONESHOT); // connfd 也是ET模式
         SetFdNonblock(connfd);
@@ -243,6 +239,16 @@ void HttpServer::OnWrite(HttpConnector* client)
     CloseConn(client);
 }
 
+void HttpServer::ExtentTime(HttpConnector* client)
+{
+    assert(client);
+    // 当连接有新的事件时更新定时器
+    if (m_timeout > 0) {
+        m_timer->adjust(client->GetFd(), m_timeout);
+    }
+}
+
+// TODO:
 bool HttpServer::SetPropertyFromFile(const std::string& path)
 {
     std::ifstream fin(path);
