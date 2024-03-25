@@ -2,8 +2,9 @@
 #define _HTTP_REQUEST_
 
 #include "../buffer/buffer.h"
-#include "../mysql/mysql.h"
+#include "../utils/sql_connector.h"
 #include <cerrno>
+#include <mysql/mysql.h>
 #include <regex>
 #include <string>
 #include <unordered_map>
@@ -82,6 +83,7 @@ private:
     bool ParseBody(const std::string& line);
 
     void ParseFromUrlencoded();
+    bool UserVerify(const std::string& name, const std::string& pwd, bool is_login);
 
     HttpCheckState m_state;
     std::string m_method, m_version, m_path; // 解析后请求行的三个属性之一

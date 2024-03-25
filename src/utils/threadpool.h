@@ -82,7 +82,7 @@ private:
     std::vector<std::thread> m_workers; // 线程数组
     std::queue<std::function<void()>> m_tasks; // 任务队列
 
-    std::mutex m_queue_mutex; // 互斥量
+    std::mutex m_queue_mutex; // 互斥锁
     std::condition_variable m_condition; // 条件变量
     bool m_stop; // 停止或开始任务
 };
