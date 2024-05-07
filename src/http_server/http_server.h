@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <unordered_map>
 
+#include "../utils/log.h"
 #include "../utils/threadpool.h"
 #include "../utils/timer.h"
 #include "epoll.h"
@@ -21,13 +22,13 @@ public:
     /**
      * 服务器初始化，暂时不启动监听服务，port：监听的端口，timeout：超时器，thread_num：线程池大小
      */
-    HttpServer(int port, int timeout, bool linger, int thread_num);
+    HttpServer(int port, int timeout, bool linger, int thread_num, bool open_log, int sql_port, const char* sql_user, const char* sql_pwd, const char* dbName, int sqlconnpool_num);
     ~HttpServer()
     {
         close(m_listenFd);
         m_is_listen = false;
         free(m_src_dir);
-        //    SqlConnPool::Instance()->ClosePool();
+        SqlConnector::GetInstance().ClosePool();
     }
     /**
      * 启动服务器，启动监听服务

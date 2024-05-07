@@ -109,7 +109,7 @@ void HttpResponse::AddContent(Buffer& buff)
         MAP_PRIVATE 建立一个写入时拷贝的私有映射*/
     // mmap 将一个文件或者其它对象映射进内存。文件被映射到多个页上，如果文件的大小不是所有页的大小之和，最后一个页不被使用的空间将会清零。
     // munmap 执行相反的操作，删除特定地址区域的对象映射。
-    // LOG_DEBUG("file path %s", (srcDir_ + path_).data());
+    LOG_DEBUG("file path %s", (m_src_dir + m_path).data());
     int* mm_ret = (int*)mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, src_fd, 0);
     if (*mm_ret == -1) {
         ErrorContent(buff, "File Not Found!");

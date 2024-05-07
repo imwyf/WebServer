@@ -34,6 +34,8 @@ public:
      */
     void ClosePool();
 
+    int GetPoolSize() { return m_max_conn_size; }
+
 private:
     /* 下面的声明是为了实现单例模式 */
     SqlConnector() = default;

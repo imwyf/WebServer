@@ -190,7 +190,7 @@ void HttpRequest::ParseFromUrlencoded()
             value = m_body.substr(j, i - j);
             j = i + 1;
             m_post[key] = value;
-            // LOG_DEBUG("%s = %s", key.c_str(), value.c_str());
+            LOG_DEBUG("%s = %s", key.c_str(), value.c_str());
             break;
         default:
             break;
@@ -203,12 +203,12 @@ void HttpRequest::ParseFromUrlencoded()
     }
 }
 
-bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bool isLogin)
+bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bool is_login)
 {
     if (name.empty() || pwd.empty()) {
         return false;
     }
-    //    LOG_INFO("Verify name:%s pwd:%s", name.c_str(), pwd.c_str());
+    LOG_INFO("Verify name:%s pwd:%s", name.c_str(), pwd.c_str());
     MYSQL* sql = SqlConnector::GetInstance().GetConnection();
     assert(sql);
 
@@ -218,12 +218,12 @@ bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bo
     MYSQL_FIELD* fields = nullptr;
     MYSQL_RES* res = nullptr;
 
-    if (!isLogin) {
+    if (!is_login) {
         flag = true;
     }
     /* 查询用户及密码 */
     snprintf(order, 256, "SELECT username, password FROM user WHERE username='%s' LIMIT 1", name.c_str());
-    //    LOG_DEBUG("%s", order);
+    LOG_DEBUG("%s", order);
 
     if (mysql_query(sql, order)) {
         mysql_free_result(res);
@@ -232,36 +232,36 @@ bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bo
     res = mysql_store_result(sql);
 
     while (MYSQL_ROW row = mysql_fetch_row(res)) {
-        //        LOG_DEBUG("MYSQL ROW: %s %s", row[0], row[1]);
+        LOG_DEBUG("MYSQL ROW: %s %s", row[0], row[1]);
         std::string password(row[1]);
         /* 登录行为 */
-        if (isLogin) {
+        if (is_login) {
             if (pwd == password) {
                 flag = true;
             } else {
                 flag = false;
-                //                LOG_DEBUG("pwd error!");
+                LOG_DEBUG("pwd error!");
             }
         } else {
             flag = false;
-            //            LOG_DEBUG("user used!");
+            LOG_DEBUG("user used!");
         }
     }
     mysql_free_result(res);
 
     /* 注册行为 且 用户名未被使用*/
-    if (!isLogin && flag) {
-        //        LOG_DEBUG("regirster!");
+    if (!is_login && flag) {
+        LOG_DEBUG("regirster!");
         bzero(order, 256);
         snprintf(order, 256, "INSERT INTO user(username, password) VALUES('%s','%s')", name.c_str(), pwd.c_str());
-        //        LOG_DEBUG( "%s", order);
+        LOG_DEBUG("%s", order);
         if (mysql_query(sql, order)) {
-            //            LOG_DEBUG( "Insert error!");
+            LOG_DEBUG("Insert error!");
             flag = false;
         }
         flag = true;
     }
     SqlConnector::GetInstance().FreeConnection(sql);
-    //    LOG_DEBUG( "UserVerify success!!");
+    LOG_DEBUG("UserVerify success!!");
     return flag;
 }

@@ -1,5 +1,4 @@
 #include "http_server.h"
-#include "../utils/debug.h"
 #include "../utils/json.h" // https://github.com/nlohmann/json/tree/develop/single_include/nlohmann/json.hpp
 #include "../utils/timer.h"
 #include "http_connector.h"
@@ -11,7 +10,9 @@
 using json = nlohmann::json;
 static const std::string CONFIG_FILEPATH = "../conf_http_server.json";
 
-HttpServer::HttpServer(int port, int timeout, bool linger, int thread_num)
+HttpServer::HttpServer(int port, int timeout, bool linger, int thread_num,
+    bool open_log, int sql_port, const char* sql_user, const char* sql_pwd,
+    const char* dbName, int sqlconnpool_num)
     : m_port(port)
     , m_is_listen(false)
     , m_timeout(timeout)
@@ -26,32 +27,33 @@ HttpServer::HttpServer(int port, int timeout, bool linger, int thread_num)
     HttpConnector::g_user_count = 0;
     HttpConnector::SRC_DIR = m_src_dir;
     HttpConnector::g_is_ET = true;
+    SqlConnector::GetInstance().InitPool("localhost", sql_port, sql_user, sql_pwd, dbName, sqlconnpool_num);
 
     if (!InitListen()) {
-        //        LOG_ERROR("========== Server init error!==========");
         m_is_listen = false;
     }
-    //    if(openLog) {
-    //        Log::Instance()->init(logLevel, "./log", ".log", logQueSize);
-    //        if(isClose_) { LOG_ERROR("========== Server init error!=========="); }
-    //        else {
-    //            LOG_INFO("========== Server init ==========");
-    //            LOG_INFO("Port:%d, OpenLinger: %s", port_, OptLinger? "true":"false");
-    //            LOG_INFO("Listen Mode: %s, OpenConn Mode: %s",
-    //                     (listenEvent_ & EPOLLET ? "ET": "LT"),
-    //                     (connEvent_ & EPOLLET ? "ET": "LT"));
-    //            LOG_INFO("LogSys level: %d", logLevel);
-    //            LOG_INFO("srcDir: %s", HttpConn::srcDir);
-    //            LOG_INFO("SqlConnPool num: %d, ThreadPool num: %d", connPoolNum, threadNum);
-    //        }
-    //    }
+
+    if (open_log) {
+        Log::GetInstance()->Init();
+        if (m_is_listen == false) {
+            LOG_ERROR("========== Server init error!==========");
+        } else {
+            LOG_INFO("========== Server init ==========");
+            LOG_INFO("Port:%d, OpenLinger: %s", m_port, m_linger ? "true" : "false");
+            LOG_INFO("srcDir: %s", HttpServer::m_src_dir);
+            LOG_INFO("Timeout: %d", m_timeout);
+            LOG_INFO("SqlConnPool num: %d, ThreadPool num: %d", SqlConnector::GetInstance().GetPoolSize(), thread_num);
+        }
+    }
 }
 
 void HttpServer::Start()
 {
     int timeout = -1; // epoll wait timeout == -1 无事件将阻塞
     m_is_listen = true; // 启动监听
-    //    if(!isClose_) { LOG_INFO("========== Server start =========="); }
+    if (m_is_listen) {
+        LOG_INFO("========== Server start ==========");
+    }
     while (m_is_listen) {
         if (m_timeout > 0) {
             timeout = m_timer->GetNextTick(); // 获取下一个事件剩余时间
@@ -72,8 +74,7 @@ void HttpServer::Start()
                 assert(m_users.count(fd) > 0);
                 OnWrite(&m_users[fd]);
             } else {
-                //                LOG_ERROR("Unexpected event");
-                DBG(printf("Unexpected event"));
+                LOG_ERROR("Unexpected event");
             }
         }
     }
@@ -84,7 +85,7 @@ bool HttpServer::InitListen()
     int ret;
     struct sockaddr_in addr { };
     if (m_port > 65535 || m_port < 1024) {
-        //        LOG_ERROR("Port:%d error!",  port_);
+        LOG_ERROR("Port:%d error!", m_port);
         return false;
     }
     addr.sin_family = AF_INET;
@@ -99,14 +100,14 @@ bool HttpServer::InitListen()
 
     m_listenFd = socket(AF_INET, SOCK_STREAM, 0);
     if (m_listenFd < 0) {
-        //        LOG_ERROR("Create socket error!", port_);
+        LOG_ERROR("Create socket error!", m_port);
         return false;
     }
 
     ret = setsockopt(m_listenFd, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger));
     if (ret < 0) {
         close(m_listenFd);
-        //        LOG_ERROR("Init linger error!", port_);
+        LOG_ERROR("Init linger error!", m_port);
         return false;
     }
 
@@ -115,33 +116,33 @@ bool HttpServer::InitListen()
     /* 只有最后一个套接字会正常接收数据。 */
     ret = setsockopt(m_listenFd, SOL_SOCKET, SO_REUSEADDR, (const void*)&optval, sizeof(int)); // 设置linger
     if (ret == -1) {
-        //        LOG_ERROR("set socket setsockopt error !");
+        LOG_ERROR("set socket setsockopt error !");
         close(m_listenFd);
         return false;
     }
 
     ret = bind(m_listenFd, (struct sockaddr*)&addr, sizeof(addr)); // 绑定端口
     if (ret < 0) {
-        //        LOG_ERROR("Bind Port:%d error!", port_);
+        LOG_ERROR("Bind Port:%d error!", m_port);
         close(m_listenFd);
         return false;
     }
 
     ret = listen(m_listenFd, 6); // 启动监听
     if (ret < 0) {
-        //        LOG_ERROR("Listen port:%d error!", port_);
+        LOG_ERROR("Listen port:%d error!", m_port);
         close(m_listenFd);
         return false;
     }
 
     ret = m_epoll->AddFd(m_listenFd, EPOLLET | EPOLLIN | EPOLLRDHUP); // listenfd ET模式
     if (ret == 0) {
-        //        LOG_ERROR("Add listen error!");
+        LOG_ERROR("Add listen error!");
         close(m_listenFd);
         return false;
     }
     SetFdNonblock(m_listenFd);
-    //    LOG_INFO("Server port:%d", port_);
+    LOG_INFO("Server port:%d", m_port);
     return true;
 }
 
@@ -156,7 +157,7 @@ void HttpServer::SendError(int fd, const char* info)
     assert(fd > 0);
     int ret = send(fd, info, strlen(info), 0);
     if (ret < 0) {
-        // LOG_WARN("send error to client[%d] error!", fd);
+        LOG_WARN("send error to client[%d] error!", fd);
     }
     close(fd);
 }
@@ -164,7 +165,7 @@ void HttpServer::SendError(int fd, const char* info)
 void HttpServer::CloseConn(HttpConnector* client)
 {
     assert(client);
-    // LOG_INFO("Client[%d] quit!", client->GetFd());
+    LOG_INFO("Client[%d] quit!", client->GetFd());
     m_epoll->DelFd(client->GetFd());
     client->Close();
 }
@@ -179,7 +180,7 @@ void HttpServer::OnListen()
             return;
         } else if (HttpConnector::g_user_count >= MAX_FD) {
             SendError(connfd, "Server busy!");
-            //            LOG_WARN("Clients is full!");
+            LOG_WARN("Clients is full!");
             return;
         }
 
@@ -190,7 +191,7 @@ void HttpServer::OnListen()
         }
         m_epoll->AddFd(connfd, EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLONESHOT); // connfd 也是ET模式
         SetFdNonblock(connfd);
-        //    LOG_INFO("Client[%d] in!", users_[fd].GetFd());
+        LOG_INFO("Client[%d] in!", m_users[connfd].GetFd());
     } while (1); // ET模式
 }
 
@@ -249,10 +250,10 @@ void HttpServer::ExtentTime(HttpConnector* client)
 }
 
 // TODO:
-bool HttpServer::SetPropertyFromFile(const std::string& path)
-{
-    std::ifstream fin(path);
-    json j;
-    fin >> j;
-    fin.close();
-}
+// bool HttpServer::SetPropertyFromFile(const std::string& path)
+// {
+//     std::ifstream fin(path);
+//     json j;
+//     fin >> j;
+//     fin.close();
+// }

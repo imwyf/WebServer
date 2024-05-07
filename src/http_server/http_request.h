@@ -2,6 +2,7 @@
 #define _HTTP_REQUEST_
 
 #include "../buffer/buffer.h"
+#include "../utils/log.h"
 #include "../utils/sql_connector.h"
 #include <cerrno>
 #include <mysql/mysql.h>
