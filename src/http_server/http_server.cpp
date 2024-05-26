@@ -23,7 +23,7 @@ HttpServer::HttpServer(int port, int timeout, bool linger, int thread_num,
 {
     m_src_dir = getcwd(nullptr, 256);
     assert(m_src_dir);
-    strncat(m_src_dir, "/resources/", 16);
+    strncat(m_src_dir, "/resources", 16);
     HttpConnector::g_user_count = 0;
     HttpConnector::SRC_DIR = m_src_dir;
     HttpConnector::g_is_ET = true;
