@@ -36,7 +36,7 @@ const std::unordered_map<int, std::string> HttpResponse::CODE_PATH = {
     { 404, "/404.html" },
 };
 
-void HttpResponse::Reset(const std::string& src_dir, std::string path, bool is_keepalive, int code)
+void HttpResponse::Init(const std::string& src_dir, std::string path, bool is_keepalive, int code)
 {
     assert(!src_dir.empty());
     if (m_file) {
@@ -154,7 +154,7 @@ void HttpResponse::ErrorContent(Buffer& buff, std::string message) const
     }
     body += std::to_string(m_code) + " : " + status + "\n";
     body += "<p>" + message + "</p>";
-    body += "<hr><em>TinyWebServer</em></body></html>";
+    body += "<hr><em>WebServer</em></body></html>";
 
     buff.Append("Content-length: " + std::to_string(body.size()) + "\r\n\r\n");
     buff.Append(body);

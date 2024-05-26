@@ -1,5 +1,5 @@
-#ifndef _HTTP_REQUEST_
-#define _HTTP_REQUEST_
+#ifndef _HTTP_REQUEST_H_
+#define _HTTP_REQUEST_H_
 
 #include "../buffer/buffer.h"
 #include "../utils/log.h"
@@ -46,12 +46,12 @@ public:
         CHECK_STATE_BODY, // 正在分析请求体
         CHECK_STATE_FINISH // 分析完毕
     };
-    HttpRequest() { Reset(); }
+    HttpRequest() { Init(); }
     ~HttpRequest() = default;
     /**
      * 重置保存的请求报文属性
      */
-    void Reset();
+    void Init();
 
     /**
      * 从buff中读取每一行来解析
@@ -96,4 +96,4 @@ private:
     static const std::unordered_map<std::string, int> DEFAULT_HTML_TAG;
 };
 
-#endif // _HTTP_REQUEST_
+#endif // _HTTP_REQUEST_H_

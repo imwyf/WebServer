@@ -183,8 +183,7 @@ void HttpServer::OnListen()
             LOG_WARN("Clients is full!");
             return;
         }
-
-        m_users[connfd].Reset(connfd, addr);
+        m_users[connfd].Init(connfd, addr);
         if (m_timeout > 0) {
             // 将新连接添加到定时器中
             m_timer->add(connfd, m_timeout, [this, capture0 = &m_users[connfd]] { CloseConn(capture0); });

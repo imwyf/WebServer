@@ -28,13 +28,13 @@ public:
     /**
      * 根据request解析的结果，将参数传递至response，并重置HttpResponse中应写入的内容
      */
-    void Reset(const std::string& src_dir, std::string path, bool is_Keepalive, int code);
+    void Init(const std::string& src_dir, std::string path, bool is_Keepalive, int code);
 
     /**
      * 根据解析结果生成应答报文并写入buff
      */
-    void
-    MakeResponse(Buffer& buff);
+    void MakeResponse(Buffer& buff);
+
     void UnmapFile();
     /**
      * 获取资源文件

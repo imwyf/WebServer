@@ -23,7 +23,7 @@ static int ConvertHex(char ch)
     return ch;
 }
 
-void HttpRequest::Reset()
+void HttpRequest::Init()
 {
     m_method = m_body = m_path = m_version = "";
     m_state = CHECK_STATE_REQUESTLINE;

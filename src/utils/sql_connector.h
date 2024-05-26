@@ -1,3 +1,6 @@
+#ifndef _SQL_CONNECTOE_H_
+#define _SQL_CONNECTOE_H_
+
 #include <condition_variable>
 #include <mutex>
 #include <mysql/mysql.h>
@@ -48,3 +51,5 @@ private:
     std::mutex m_mutex; // 互斥锁
     std::condition_variable m_condition; // 条件变量
 };
+
+#endif // _SQL_CONNECTOE_H_

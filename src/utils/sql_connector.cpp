@@ -3,6 +3,8 @@
 #include <cassert>
 #include <mutex>
 
+int SqlConnector::m_max_conn_size;
+
 void SqlConnector::InitPool(const char* host, int port,
     const char* user, const char* pwd,
     const char* db_name, int conn_size)

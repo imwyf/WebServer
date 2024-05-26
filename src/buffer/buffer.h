@@ -1,5 +1,5 @@
-#ifndef _BUFFER_
-#define _BUFFER_
+#ifndef _BUFFER_H_
+#define _BUFFER_H_
 
 #include <assert.h>
 #include <atomic>
@@ -128,4 +128,4 @@ private: // 成员变量
     std::vector<char> m_buffer; // 缓冲区
 };
 
-#endif // !_BUFFER_
+#endif // !_BUFFER_H_

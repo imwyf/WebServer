@@ -1,5 +1,5 @@
-#ifndef _WEBSERVER_H_
-#define _WEBSERVER_H_
+#ifndef _HTTP_SERVER_H_
+#define _HTTP_SERVER_H_
 
 #include <arpa/inet.h>
 #include <cassert>
@@ -72,6 +72,7 @@ private:
     bool m_is_listen;
     int m_listenFd {};
     char* m_src_dir;
+    std::atomic<int> g_user_count;
 
     std::unordered_map<int, HttpConnector> m_users;
     std::unique_ptr<Epoll> m_epoll;
@@ -79,4 +80,4 @@ private:
     std::unique_ptr<Timer> m_timer;
 };
 
-#endif // _WEBSERVER_H_
+#endif // _HTTP_SERVER_H_

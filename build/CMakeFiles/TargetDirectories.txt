@@ -1,0 +1,3 @@
+/home/imwyf/webServer/build/CMakeFiles/main.dir
+/home/imwyf/webServer/build/CMakeFiles/edit_cache.dir
+/home/imwyf/webServer/build/CMakeFiles/rebuild_cache.dir

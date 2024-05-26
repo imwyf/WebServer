@@ -1,0 +1,62 @@
+[
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/buffer/buffer.cpp.o -c /home/imwyf/webServer/src/buffer/buffer.cpp",
+  "file": "/home/imwyf/webServer/src/buffer/buffer.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/buffer/buffer.cpp.o"
+},
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/epoll.cpp.o -c /home/imwyf/webServer/src/http_server/epoll.cpp",
+  "file": "/home/imwyf/webServer/src/http_server/epoll.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/epoll.cpp.o"
+},
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/http_connector.cpp.o -c /home/imwyf/webServer/src/http_server/http_connector.cpp",
+  "file": "/home/imwyf/webServer/src/http_server/http_connector.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/http_connector.cpp.o"
+},
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/http_request.cpp.o -c /home/imwyf/webServer/src/http_server/http_request.cpp",
+  "file": "/home/imwyf/webServer/src/http_server/http_request.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/http_request.cpp.o"
+},
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/http_response.cpp.o -c /home/imwyf/webServer/src/http_server/http_response.cpp",
+  "file": "/home/imwyf/webServer/src/http_server/http_response.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/http_response.cpp.o"
+},
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/http_server.cpp.o -c /home/imwyf/webServer/src/http_server/http_server.cpp",
+  "file": "/home/imwyf/webServer/src/http_server/http_server.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/http_server/http_server.cpp.o"
+},
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/utils/log.cpp.o -c /home/imwyf/webServer/src/utils/log.cpp",
+  "file": "/home/imwyf/webServer/src/utils/log.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/utils/log.cpp.o"
+},
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/utils/sql_connector.cpp.o -c /home/imwyf/webServer/src/utils/sql_connector.cpp",
+  "file": "/home/imwyf/webServer/src/utils/sql_connector.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/utils/sql_connector.cpp.o"
+},
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/utils/timer.cpp.o -c /home/imwyf/webServer/src/utils/timer.cpp",
+  "file": "/home/imwyf/webServer/src/utils/timer.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/utils/timer.cpp.o"
+},
+{
+  "directory": "/home/imwyf/webServer/build",
+  "command": "/usr/bin/g++  -I/home/imwyf/webServer/build/../src/buffer -I/home/imwyf/webServer/build/../src/http_server -I/home/imwyf/webServer/build/../src/utils -I/usr/include/mysql -g -o CMakeFiles/main.dir/home/imwyf/webServer/src/main.cpp.o -c /home/imwyf/webServer/src/main.cpp",
+  "file": "/home/imwyf/webServer/src/main.cpp",
+  "output": "CMakeFiles/main.dir/home/imwyf/webServer/src/main.cpp.o"
+}
+]

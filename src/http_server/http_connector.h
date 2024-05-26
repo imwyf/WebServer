@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <cassert>
 #include <cerrno>
+#include <cstddef>
 #include <cstdlib>
 #include <string>
 #include <sys/types.h>
@@ -26,9 +27,9 @@ public:
     /**
      * 构造方法，应传递connfd，以及客户端addr作为参数
      */
-    HttpConnector(int sockFd, const sockaddr_in& addr) { Reset(sockFd, addr); }
+    HttpConnector() { }
     ~HttpConnector() { Close(); }
-    void Reset(int sockFd, const sockaddr_in& addr);
+    void Init(int sockFd, const sockaddr_in& addr);
     /**
      * 从本连接的fd向读缓冲写入
      */

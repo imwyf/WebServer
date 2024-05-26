@@ -1,8 +1,10 @@
 #include "http_connector.h"
 
-static bool g_is_ET = true;
+bool HttpConnector::g_is_ET;
+const char* HttpConnector::SRC_DIR;
+std::atomic<int> HttpConnector::g_user_count;
 
-void HttpConnector::Reset(int sockfd, const sockaddr_in& addr)
+void HttpConnector::Init(int sockfd, const sockaddr_in& addr)
 {
     assert(sockfd > 0);
     g_user_count++;
@@ -67,15 +69,15 @@ ssize_t HttpConnector::Write(int* saveErrno)
 
 bool HttpConnector::Process()
 {
-    m_request.Reset(); // process之前，先重置用来保存请求报文属性的m_request
+    m_request.Init(); // process之前，先重置用来保存请求报文属性的m_request
     if (m_readBuf.ReadableBytes() <= 0) {
         return false;
     }
 
     if (m_request.Parse(m_readBuf)) { // 先解析读缓冲的请求报文，然后根据其内容重置用来写入应答报文的m_response
-        m_response.Reset(SRC_DIR, m_request.GetPath(), m_request.IsKeepAlive(), 200);
+        m_response.Init(SRC_DIR, m_request.GetPath(), m_request.IsKeepAlive(), 200);
     } else {
-        m_response.Reset(SRC_DIR, m_request.GetPath(), false, 400);
+        m_response.Init(SRC_DIR, m_request.GetPath(), false, 400);
     }
 
     m_response.MakeResponse(m_writeBuf);
