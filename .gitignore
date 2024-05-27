@@ -1,0 +1,34 @@
+# User ================================
+# 用户自定义的其他忽略文件
+
+# CMake
+cmake-build-*/
+
+# vscode ================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+
+# Executables
+*.exe
+*.out
+*.app
+
+# CMake ================================
+/bin/
+/build/
+**/CMakeLists.txt.user
+**/CMakeCache.txt
+**/CMakeFiles
+**/CMakeScripts
+**/Testing
+**/Makefile
+**/cmake_install.cmake
+**/install_manifest.txt
+**/compile_commands.json
+**/CTestTestfile.cmake
+
+
