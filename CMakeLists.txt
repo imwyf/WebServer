@@ -2,6 +2,9 @@ cmake_minimum_required (VERSION 3.0)
 
 project (webServer)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS True)		# 让CMake生成compile_commands.json文件
+set(CMAKE_BUILD_TYPE "Debug")				# 设置编译时使用 -g 参数生成可供调试的程序，不设置则生成的main.exe无法调试
+
 include_directories(${PROJECT_BINARY_DIR}/../src/buffer ${PROJECT_BINARY_DIR}/../src/http_server ${PROJECT_BINARY_DIR}/../src/utils)
 
 aux_source_directory(${PROJECT_BINARY_DIR}/../src/buffer BUFFER)
