@@ -86,7 +86,7 @@ void Log::WriteLog(int level, const char* format, ...)
             fclose(m_fp);
         }
         m_fp = fopen(newFile, "a");
-        // assert(m_fp != nullptr); // TODO:DEBUG
+        assert(m_fp != nullptr);
     }
 
     // 在buffer内生成一条对应的日志信息

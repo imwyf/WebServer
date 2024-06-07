@@ -16,6 +16,7 @@ cmake-build-*/
 *.exe
 *.out
 *.app
+/log
 
 # CMake ================================
 /bin/

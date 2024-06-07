@@ -27,24 +27,23 @@ HttpServer::HttpServer(int port, int timeout, bool linger, int thread_num,
     HttpConnector::g_user_count = 0;
     HttpConnector::SRC_DIR = m_src_dir;
     HttpConnector::g_is_ET = true;
-    SqlConnector::GetInstance().InitPool("localhost", sql_port, sql_user, sql_pwd, dbName, sqlconnpool_num);
-
-    if (!InitListen()) {
-        m_is_listen = false;
-    }
 
     if (open_log) {
         Log::GetInstance()->Init();
-        if (m_is_listen == false) {
-            LOG_ERROR("========== Server init error!==========");
-        } else {
-            LOG_INFO("========== Server init ==========");
-            LOG_INFO("Port:%d, OpenLinger: %s", m_port, m_linger ? "true" : "false");
-            LOG_INFO("srcDir: %s", HttpServer::m_src_dir);
-            LOG_INFO("Timeout: %d", m_timeout);
-            LOG_INFO("SqlConnPool num: %d, ThreadPool num: %d", SqlConnector::GetInstance().GetPoolSize(), thread_num);
-        }
     }
+
+    SqlConnector::GetInstance().InitPool("localhost", sql_port, sql_user, sql_pwd, dbName, sqlconnpool_num);
+
+    LOG_INFO("========== Server init ==========");
+    if (!InitListen()) {
+        m_is_listen = false;
+        LOG_ERROR("========== Server init error!==========");
+    }
+
+    LOG_INFO("Port:%d, OpenLinger: %s", m_port, m_linger ? "true" : "false");
+    LOG_INFO("srcDir: %s", HttpServer::m_src_dir);
+    LOG_INFO("Timeout: %d", m_timeout);
+    LOG_INFO("SqlConnPool num: %d, ThreadPool num: %d", SqlConnector::GetInstance().GetPoolSize(), thread_num);
 }
 
 void HttpServer::Start()
