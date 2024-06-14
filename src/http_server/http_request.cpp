@@ -48,16 +48,13 @@ bool HttpRequest::IsKeepAlive() const
     return false;
 }
 
-/**
- * 解析请求的主方法:从读缓冲中读入内容，以\r\n作为行分割，分别解析请求的3个部分
- */
 bool HttpRequest::Parse(Buffer& buff)
 {
     const char CRLF[] = "\r\n";
     if (buff.ReadableBytes() <= 0) {
         return false;
     }
-    while (buff.ReadableBytes() && m_state != CHECK_STATE_FINISH) { // 状态机，循环解析
+    while (buff.ReadableBytes() && m_state != CHECK_STATE_FINISH) { // 状态机，一行一行循环解析
         char* lineEnd = std::search(buff.GetReadPtr(), buff.GetWritePtr(), CRLF, CRLF + 2); // 在可读数据中找到分隔符\r\n
         const std::string line(buff.GetReadPtr(), lineEnd); // 根据分割符提取出一个完整的行
         switch (m_state) { // 根据状态机状态跳转
@@ -88,17 +85,18 @@ bool HttpRequest::Parse(Buffer& buff)
         }
         if (lineEnd == buff.GetWritePtr()) { // 没找到分隔符
             if (m_method == "POST" && m_state == CHECK_STATE_FINISH) { // POST请求体最后直接结束，没有分隔符
-                buff.SetReadPos(lineEnd); // readpos +=
+                buff.SetReadPos(lineEnd); // 设置已读指针到报文结尾
             }
             break;
         }
-        buff.SetReadPos(lineEnd + 2); // readpos +=
+        buff.SetReadPos(lineEnd + 2); // 设置已读指针，跳过分隔符\r\n，进入下个while继续解析下一行
     }
     return true;
 }
 
 bool HttpRequest::ParseRequestLine(const std::string& line)
 {
+    /* 下面利用正则表达式解析请求行 */
     std::regex patten("^([^ ]*) ([^ ]*) HTTP/([^ ]*)$");
     std::smatch subMatch;
     if (regex_match(line, subMatch, patten)) {
@@ -106,7 +104,7 @@ bool HttpRequest::ParseRequestLine(const std::string& line)
         m_path = subMatch[2];
         m_version = subMatch[3];
 
-        /* 若path存在，补全其路径 */
+        /* 若path存在，补全其路径(加上.html) */
         if (m_path == "/") { // 根目录
             m_path = "/index.html";
         } else {
@@ -125,10 +123,11 @@ bool HttpRequest::ParseRequestLine(const std::string& line)
 
 bool HttpRequest::ParseHeader(const std::string& line)
 {
+    /* 下面利用正则表达式解析请求头 */
     std::regex patten("^([^:]*): ?(.*)$");
     std::smatch subMatch;
     if (regex_match(line, subMatch, patten)) {
-        m_header[subMatch[1]] = subMatch[2]; // 设置请求头的属性集
+        m_header[subMatch[1]] = subMatch[2]; // 保存请求头的属性
         return true;
     }
     return false;
@@ -170,26 +169,27 @@ void HttpRequest::ParseFromUrlencoded()
     int n = m_body.size();
     int i = 0, j = 0;
 
+    /* 解析post */
     for (; i < n; i++) {
         char ch = m_body[i];
         switch (ch) {
-        case '=':
+        case '=': // 处理key
             key = m_body.substr(j, i - j);
             j = i + 1;
             break;
-        case '+':
+        case '+': // 处理空格编码
             m_body[i] = ' ';
             break;
-        case '%':
+        case '%': // 处理其他编码
             num = ConvertHex(m_body[i + 1]) * 16 + ConvertHex(m_body[i + 2]);
             m_body[i + 2] = num % 10 + '0';
             m_body[i + 1] = num / 10 + '0';
             i += 2;
             break;
-        case '&':
+        case '&': // 处理value
             value = m_body.substr(j, i - j);
             j = i + 1;
-            m_post[key] = value;
+            m_post[key] = value; // 添加一个键值对进map
             LOG_DEBUG("%s = %s", key.c_str(), value.c_str());
             break;
         default:
@@ -197,6 +197,7 @@ void HttpRequest::ParseFromUrlencoded()
         }
     }
     assert(j <= i);
+    // 处理最后一个键值对
     if (m_post.count(key) == 0 && j < i) {
         value = m_body.substr(j, i - j);
         m_post[key] = value;
@@ -212,7 +213,7 @@ bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bo
     MYSQL* sql = SqlConnector::GetInstance().GetConnection();
     assert(sql);
 
-    bool flag = false;
+    bool flag = false; // 用户验证结果
     unsigned int j = 0;
     char order[256] = { 0 };
     MYSQL_FIELD* fields = nullptr;
@@ -234,7 +235,7 @@ bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bo
     while (MYSQL_ROW row = mysql_fetch_row(res)) {
         LOG_DEBUG("MYSQL ROW: %s %s", row[0], row[1]);
         std::string password(row[1]);
-        /* 登录行为 */
+        /* 处理登录行为 */
         if (is_login) {
             if (pwd == password) {
                 flag = true;
@@ -249,7 +250,7 @@ bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bo
     }
     mysql_free_result(res);
 
-    /* 注册行为 且 用户名未被使用*/
+    /* 处理注册行为且用户名未被使用*/
     if (!is_login && flag) {
         LOG_DEBUG("regirster!");
         bzero(order, 256);

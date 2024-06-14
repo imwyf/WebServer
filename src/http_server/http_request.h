@@ -49,12 +49,12 @@ public:
     HttpRequest() { Init(); }
     ~HttpRequest() = default;
     /**
-     * 重置保存的请求报文属性
+     * 重置解析状态以及初始化保存的请求报文属性
      */
     void Init();
 
     /**
-     * 从buff中读取每一行来解析
+     * 解析请求的主方法:从读缓冲中读入内容，以\r\n作为行分割，分别解析请求的3个部分
      */
     bool Parse(Buffer& buff);
 
@@ -83,15 +83,23 @@ private:
      */
     bool ParseBody(const std::string& line);
 
+    /**
+     * 解析post的数据
+     */
     void ParseFromUrlencoded();
+
+    /**
+     * 用户验证,is_login代表是登录还是注册
+     */
     bool UserVerify(const std::string& name, const std::string& pwd, bool is_login);
 
-    HttpCheckState m_state;
+    HttpCheckState m_state; // 当前解析的状态
     std::string m_method, m_version, m_path; // 解析后请求行的三个属性之一
-    std::unordered_map<std::string, std::string> m_header; // 解析后本请求的头部属性
+    std::unordered_map<std::string, std::string> m_header; // 解析后本请求的头部属性，属性较多且可选，因此以map保存
     std::string m_body; // 保存的请求体
     std::unordered_map<std::string, std::string> m_post; // 解析后本请求的请求体中post上来的属性
 
+    // 下面二者用来补全要访问的文件名(如path = /index，则需补全为/index.html)
     static const std::unordered_set<std::string> DEFAULT_HTML;
     static const std::unordered_map<std::string, int> DEFAULT_HTML_TAG;
 };
