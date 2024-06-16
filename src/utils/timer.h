@@ -15,6 +15,11 @@ typedef std::chrono::high_resolution_clock Clock; // 表示实现提供的拥有
 typedef std::chrono::milliseconds MS; // 毫秒
 typedef Clock::time_point TimeStamp; // 表示一个时间点
 
+/* 定时器用于定期检测一个客户连接的活动状态，删除不活跃的客户连接，提高服务器的性能。 */
+
+/**
+ * 时间堆节点，用于表示一个客户连接
+ */
 struct TimerNode {
     int id;
     TimeStamp expires; // 过期时间

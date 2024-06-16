@@ -7,8 +7,8 @@
 #include <fstream>
 #include <memory>
 #include <sys/epoll.h>
-using json = nlohmann::json;
-static const std::string CONFIG_FILEPATH = "../conf_http_server.json";
+// using json = nlohmann::json;
+// static const std::string CONFIG_FILEPATH = "../conf_http_server.json";
 
 HttpServer::HttpServer(int port, int timeout, bool linger, int thread_num,
     bool open_log, int sql_port, const char* sql_user, const char* sql_pwd,
@@ -197,7 +197,7 @@ void HttpServer::OnRead(HttpConnector* client)
 {
     assert(client);
     ExtentTime(client);
-    /* Reactor：先由主线程负责读写请求\应答报文，然后由工作线程负责处理请求、填充应答 */
+    /* 模拟Proactor：先由主线程负责读写请求\应答报文，然后由工作线程负责处理请求、填充应答 */
     int ret = -1;
     int Errno = 0;
     ret = client->Read(&Errno); // 写入读缓冲
@@ -246,12 +246,3 @@ void HttpServer::ExtentTime(HttpConnector* client)
         m_timer->adjust(client->GetFd(), m_timeout);
     }
 }
-
-// TODO:
-// bool HttpServer::SetPropertyFromFile(const std::string& path)
-// {
-//     std::ifstream fin(path);
-//     json j;
-//     fin >> j;
-//     fin.close();
-// }

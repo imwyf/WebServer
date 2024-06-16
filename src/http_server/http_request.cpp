@@ -219,9 +219,6 @@ bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bo
     MYSQL_FIELD* fields = nullptr;
     MYSQL_RES* res = nullptr;
 
-    if (!is_login) {
-        flag = true;
-    }
     /* 查询用户及密码 */
     snprintf(order, 256, "SELECT username, password FROM user WHERE username='%s' LIMIT 1", name.c_str());
     LOG_DEBUG("%s", order);
@@ -251,7 +248,7 @@ bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bo
     mysql_free_result(res);
 
     /* 处理注册行为且用户名未被使用*/
-    if (!is_login && flag) {
+    if (!is_login) {
         LOG_DEBUG("regirster!");
         bzero(order, 256);
         snprintf(order, 256, "INSERT INTO user(username, password) VALUES('%s','%s')", name.c_str(), pwd.c_str());

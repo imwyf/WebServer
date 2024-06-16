@@ -62,16 +62,17 @@ public:
 
     bool IsKeepAlive() const { return m_request.IsKeepAlive(); }
 
-    static bool g_is_ET;
-    static const char* SRC_DIR;
-    static std::atomic<int> g_user_count;
+    static bool g_is_ET; // ET模式
+    static const char* SRC_DIR; // 请求文件对应的根目录
+    static std::atomic<int> g_user_count; // 所有connector共享的用户计数器
 
 private:
-    int m_fd;
-    struct sockaddr_in m_addr;
+    int m_fd; // 管理的socketfd
+    struct sockaddr_in m_addr; // 管理的socketaddr
 
-    bool m_is_close;
+    bool m_is_close; // 是否连接已关闭
 
+    /* 下面二者是用来是实现分散写的结构 */
     int m_iov_cnt {};
     struct iovec m_iov[2] {};
 

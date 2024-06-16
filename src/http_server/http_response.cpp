@@ -28,6 +28,7 @@ const std::unordered_map<int, std::string> HttpResponse::CODE_STATUS = {
     { 400, "Bad Request" },
     { 403, "Forbidden" },
     { 404, "Not Found" },
+    { -1, "Server Initing" } // 内部状态，不应返回
 };
 
 const std::unordered_map<int, std::string> HttpResponse::CODE_PATH = {
@@ -52,7 +53,7 @@ void HttpResponse::Init(const std::string& src_dir, std::string path, bool is_ke
 
 void HttpResponse::MakeResponse(Buffer& buff)
 {
-    if (stat((m_src_dir + m_path).data(), &m_file_stat) < 0 || S_ISDIR(m_file_stat.st_mode)) { // 判断请求的资源文件是否存在
+    if (stat((m_src_dir + m_path).data(), &m_file_stat) < 0 || S_ISDIR(m_file_stat.st_mode)) { // 判断请求的资源文件是否存在以及是否有权限访问
         m_code = 404;
     } else if (!(m_file_stat.st_mode & S_IROTH)) {
         m_code = 403;
@@ -75,6 +76,7 @@ void HttpResponse::ErrorHtml()
 
 void HttpResponse::AddStateLine(Buffer& buff)
 {
+    /* 根据code填充状态行 */
     std::string status;
     if (CODE_STATUS.count(m_code) == 1) {
         status = CODE_STATUS.at(m_code);
@@ -87,6 +89,7 @@ void HttpResponse::AddStateLine(Buffer& buff)
 
 void HttpResponse::AddHeader(Buffer& buff)
 {
+    /* 根据request保存的数据填充响应头 */
     buff.Append("Connection: ");
     if (m_is_keepalive) {
         buff.Append("keep-alive\r\n");
@@ -99,16 +102,17 @@ void HttpResponse::AddHeader(Buffer& buff)
 
 void HttpResponse::AddContent(Buffer& buff)
 {
+    /* 由于前面以及已经更改了path，因此直接映射该文件就行 */
     int src_fd = open((m_src_dir + m_path).data(), O_RDONLY);
     if (src_fd < 0) {
-        ErrorContent(buff, "File Not Found!");
+        ErrorContent(buff, "File Not Found!"); // 连出错网页都打不开，直接写入错误信息
         return;
     }
 
-    /* 将文件映射到内存提高文件的访问速度
-        MAP_PRIVATE 建立一个写入时拷贝的私有映射*/
-    // mmap 将一个文件或者其它对象映射进内存。文件被映射到多个页上，如果文件的大小不是所有页的大小之和，最后一个页不被使用的空间将会清零。
-    // munmap 执行相反的操作，删除特定地址区域的对象映射。
+    /* 将文件映射到内存提高文件的访问速度，MAP_PRIVATE 建立一个写入时拷贝的私有映射，
+    mmap 将一个文件或者其它对象映射进内存。文件被映射到多个页上，如果文件的大小不是所有页的大小之和，最后一个页不被使用的空间将会清零，
+    munmap 执行相反的操作，删除特定地址区域的对象映射。
+    */
     LOG_DEBUG("file path %s", (m_src_dir + m_path).data());
     int* mm_ret = (int*)mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, src_fd, 0);
     if (*mm_ret == -1) {

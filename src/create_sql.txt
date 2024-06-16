@@ -1,7 +1,0 @@
-create database webserver;
-use webserver;
-
-create table user(
-    username varchar(50),
-    password varchar(50)
-    );

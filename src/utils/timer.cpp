@@ -1,5 +1,9 @@
 #include "timer.h"
 
+/**
+ * 下滤：将当前节点与其左、右子节点相比，如果当前节点的值比其中一个（或两个）子节点的值大，就把当前节点与两个子节点中较小的那个交换，
+ *      继续前面的比较，直到当前节点的值比两个子节点的值都小为止。此时，便符合最小堆的定义。
+ */
 bool Timer::siftdown_(size_t index, size_t n)
 { // 从index到n之间进行下虑
     assert(index >= 0 && index < heap_.size());
@@ -17,6 +21,11 @@ bool Timer::siftdown_(size_t index, size_t n)
     }
     return i > index;
 }
+
+/**
+ * 上滤：将当前节点与其父节点相比，如果当前节点的值比较小，就把当前节点与父节点交换，
+ *      继续前面的比较，直到当前节点的值比父节点的值大为止。此时，便符合最小堆的定义。
+ */
 void Timer::siftup_(size_t i)
 {
     assert(i >= 0 && i < heap_.size());
@@ -38,6 +47,10 @@ void Timer::SwapNode_(size_t i, size_t j)
     ref_[heap_[i].id] = i;
     ref_[heap_[j].id] = j;
 }
+
+/**
+ * 交换要删除节点和最后一个节点，然后进行下滤和上滤操作，最后删除数组尾部元素
+ */
 void Timer::del_(size_t index)
 {
     /* 删除指定位置的结点 */

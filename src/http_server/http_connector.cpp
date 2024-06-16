@@ -34,7 +34,7 @@ ssize_t HttpConnector::Read(int* saveErrno)
             *saveErrno = errno;
             break;
         }
-    } while (g_is_ET); // TODO:分析ET的设计
+    } while (g_is_ET); // 由于ET模式只通知一次，因此要将缓冲区内的这次数据全部读完
     return len;
 }
 
@@ -63,7 +63,7 @@ ssize_t HttpConnector::Write(int* saveErrno)
             m_iov[0].iov_len -= len;
             m_writeBuf.AddReadPos(len);
         }
-    } while (g_is_ET || ToWriteBytes() > 10240);
+    } while (g_is_ET || ToWriteBytes() > 10240); // ET模式只通知一次，全部写入
     return len;
 }
 

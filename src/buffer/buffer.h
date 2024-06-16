@@ -24,7 +24,7 @@
  * 一个缓冲区，包含，是vector<char>的封装，可以自动扩容,提供prepend空间，让程序能以很低的代价在数据前面添加几个字节
  */
 class Buffer {
-    // 为什么用裸指针，用智能指针或iterator？-> 因为读数据的iovec结构需要裸指针作为参数
+    // 为什么用裸指针，不用智能指针或iterator？-> 因为读数据的iovec结构需要裸指针作为参数
 public:
     static const size_t INIT_BUFFER_SIZE = 1024;
     static const size_t INIT_PREPEND_SIZE = 8; // prependable初始大小,即readIndex初始的位置
